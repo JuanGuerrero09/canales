@@ -54,6 +54,7 @@ class SeccionRectangular(Canal):
         return f"\nCanal: {self.tipo_canal}\nDimensiones: \n\tBase: {self.b}\n\tAltura de agua: {self.y:.2f}\n{super().__str__()}"
     
     def caudal_manning(self):
+        self.calc_propiedades()
         return (self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n
     
     def calc_yn(self):
@@ -94,6 +95,7 @@ class SeccionTrapezoidal(Canal):
   
 
     def caudal_manning(self):
+        self.calc_propiedades()
         self.calc_propiedades()
         return (self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n
     
@@ -148,6 +150,7 @@ class SeccionTriangular(Canal):
             print(self)
 
     def caudal_manning(self):
+        self.calc_propiedades()
         return (self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n
     
     def calc_yn(self):
@@ -192,6 +195,7 @@ class SeccionCircular(Canal):
         return f"\nCanal: {self.tipo_canal}\nDimensiones: \n\tDiametro del canal: {self.D}\n\tAltura de agua: {self.y:.2f}\n{super().__str__()}"
     
     def caudal_manning(self):
+        self.calc_propiedades()
         return (self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n
     
     def calc_yn(self):
@@ -213,8 +217,12 @@ class SeccionCircular(Canal):
 # a.calc_yn()
 # b = SeccionTriangular(0.013, 0.0075, 3.5, 1.5)
 # b.calc_yn()
-# # print(b)
 # c = SeccionRectangular(0.013, 0.0075, 3.5, 2.35)
 # c.calc_yn()
 y = SeccionCircular(0.013, 0.0075, 3.5, 3)
 y.calc_yn()
+
+x = SeccionCircular(0.013, 0.0075, None, 3, 0.608)
+x.calc_propiedades()
+
+print(x.caudal_manning())
