@@ -22,6 +22,8 @@ def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=
         # y_input = float(input("Defina la altura: "))
         seccion = SeccionCircular(n_input, So_input, Q_input, D_input, y_input)
 
+    print('vamos acá')
+
     if (calculo == 'yn'):
         seccion.calc_yn()
 
@@ -33,11 +35,11 @@ def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=
     return seccion
 
 # calcular_seccion('Rectangular', 'yn', 0.013, 0.0075, 3.5, b_input=2)
-calcular_seccion('Rectangular', 'Q', 0.013, 0.0075, y_input= 0.532, b_input= 2)
-# calcular_seccion('Trapezoidal', 'yn', 0.013, 0.0075, 3.5, 2, 1.5)
-# calcular_seccion('Trapezoidal', 'Q', 0.013, 0.0075, y_input= 0.427, b_input= 2, z_input= 1.5)
-# calcular_seccion('Triangular', 'yn', 0.013, 0.0075, 3.5, z_input=1.5)
-# calcular_seccion('Triangular', 'Q', 0.013, 0.0075, y_input= 0.84, z_input= 1.5)
+# calcular_seccion('Rectangular', 'Q', 0.013, 0.0075, y_input= 0.532, b_input= 2)
+# calcular_seccion('Trapezoidal', 'yn', 0.033, 0.0075, 3.5, 2, 1.5)
+# calcular_seccion('Trapezoidal', 'Q', 0.033, 0.0075, y_input= 0.711, b_input= 2, z_input= 1.5)
+# calcular_seccion('Triangular', 'yn', 0.033, 0.0075, 3.5, z_input=1.5)
+# calcular_seccion('Triangular', 'Q', 0.033, 0.0075, y_input= 1.191, z_input= 1.5)
 # calcular_seccion('Circular', 'yn', 0.013, 0.0075, 3.5, D_input=3)
 # calcular_seccion('Circular', 'Q', 0.013, 0.0075, y_input= 0.608, D_input=3)
 

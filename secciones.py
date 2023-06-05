@@ -16,11 +16,22 @@ class Canal(object):
         self.factor_de_seccion = None
         self.velocidad = None
         self.froude = None
+        self.tipo_de_flujo = None
 
     def calc_propiedades(self):
-        if (self.Q != None):
-            self.velocidad = self.Q / self.area
-            self.froude = self.velocidad/ sqrt(9.81 * self.y)
+        if self.Q is not None:
+            if type(self.y) is not Symbol:
+                self.velocidad = self.Q / self.area
+                self.froude = self.velocidad / sqrt(9.81 * self.y)
+                froude_value = str(self.froude)
+                froude_value = float(froude_value)
+                if froude_value > 1.0:
+                    self.tipo_de_flujo = 'Supercrítico'
+                elif froude_value == 1.0:
+                    self.tipo_de_flujo = 'Crítico'
+                else:
+                    self.tipo_de_flujo = 'Subcrítico'
+
         else:
             pass
 
@@ -34,7 +45,7 @@ class Canal(object):
         self.Q = value
 
     def __str__(self) -> str:
-        return f"Altura Normal: {self.y:.3f}\nRugosidad: {self.n}\nPendiente: {self.So}\nCaudal: {self.Q} m/s\nÁrea: {self.area:.3f}\nVelocidad: {self.velocidad:.3f}\nFroude: {self.froude:.3f}\n\n"
+        return f"Altura Normal: {self.y:.3f}\nRugosidad: {self.n}\nPendiente: {self.So}\nCaudal: {self.Q} m/s\nÁrea: {self.area:.3f}\nVelocidad: {self.velocidad:.3f}\nFroude: {self.froude:.3f}\nTipo de Flujo: {self.tipo_de_flujo}\n\n"
     
     # Áncho Superficial: {self.ancho_superficial:.3f}\n
 
@@ -107,19 +118,9 @@ class SeccionTrapezoidal(Canal):
     
     def calc_yn(self):
         if isinstance(self.y, Symbol):
-            def f(y):
-                return (((self.b + (y*self.z)) * y) * (((self.b + (y*self.z)) * y)/(self.b + (2 * y * sqrt(1 + self.z**2))))**(2/3) * (self.So)**0.5) / (self.n) - 3.5
-            x0=0
-            x1=30
-            tol=1e-6
-            max_iter=100
             self.calc_propiedades()
-            i = 0   
-            while abs(x1 - x0) > tol and i < max_iter:
-                x0, x1 = x1, x1 - f(x1) * (x1 - x0) / (f(x1) - f(x0))
-                i += 1
-            self.y = x1  # Proporciona el argumento adicional "y"
-            print('La profundidad normal es: ' + str(self.y))
+            sol = (self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n
+            self.y = nsolve(sol - self.Q, self.y, 1)  # Pasar self.y como variable simbólica
             self.calc_propiedades()
         else: 
             print('ya se tiene la altura: ' + str(self.y))
@@ -129,8 +130,6 @@ class SeccionTrapezoidal(Canal):
     def __str__(self):
         return f"Canal: {self.tipo_canal}\nDimensiones: \n\tBase: {self.b}\n\tPendiente: {self.b}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
 
-
-        
 
 
 class SeccionTriangular(Canal):
@@ -164,8 +163,7 @@ class SeccionTriangular(Canal):
 
     def __str__(self):
         return f"Canal: {self.tipo_canal}\nDimensiones: \n\tPendiente: {self.z}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
-    
-#TODO COMPLETAR SECCION CIRCULAR
+
     
 class SeccionCircular(Canal): 
     def __init__(self, n, So, Q, D, y = Symbol('y')):
@@ -205,20 +203,3 @@ class SeccionCircular(Canal):
         else:
             self.calc_propiedades()
         return self.y
-
-
-
-
-# a = SeccionTrapezoidal(0.013, 0.0075, 3.5, 2.35, 1.5)
-# a.calc_yn()
-# b = SeccionTriangular(0.013, 0.0075, 3.5, 1.5)
-# b.calc_yn()
-# c = SeccionRectangular(0.013, 0.0075, 3.5, 2.35)
-# c.calc_yn()
-# y = SeccionCircular(0.013, 0.0075, 3.5, 3)
-# y.calc_yn()
-
-# x = SeccionCircular(0.013, 0.0075, None, 3, 0.608)
-# x.calc_propiedades()
-
-# print(x.caudal_manning())
