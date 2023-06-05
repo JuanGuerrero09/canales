@@ -1,38 +1,48 @@
 # Librerías
 import pprint
 import inquirer
-from secciones import SeccionRectangular, SeccionTrapezoidal, SeccionTriangular
+from secciones import SeccionRectangular, SeccionTrapezoidal, SeccionTriangular, SeccionCircular
+from sympy import Symbol
+
+def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=None, z_input=None, D_input= None, y_input = Symbol('y')):
+    if seccion == "Rectangular":
+        # y_input = float(input("Defina la altura: "))
+        seccion = SeccionRectangular(n_input, So_input, Q_input, b_input, y_input)
+
+
+    elif seccion == "Triangular":
+        # y_input = float(input("Defina la altura: "))
+        seccion = SeccionTriangular(n_input, So_input, Q_input, z_input, y_input)
+
+    elif seccion == "Trapezoidal":
+        # y_input = float(input("Defina la altura: "))
+        seccion = SeccionTrapezoidal(n_input, So_input, Q_input, b_input, z_input, y_input)
+
+    elif seccion == "Circular":
+        # y_input = float(input("Defina la altura: "))
+        seccion = SeccionCircular(n_input, So_input, Q_input, D_input, y_input)
+
+    if (calculo == 'yn'):
+        seccion.calc_yn()
+
+    elif(calculo == 'Q'):
+        seccion.caudal_manning()
+
+    print(seccion)
+    
+    return seccion
+
+# calcular_seccion('Rectangular', 'yn', 0.013, 0.0075, 3.5, b_input=2)
+calcular_seccion('Rectangular', 'Q', 0.013, 0.0075, y_input= 0.532, b_input= 2)
+# calcular_seccion('Trapezoidal', 'yn', 0.013, 0.0075, 3.5, 2, 1.5)
+# calcular_seccion('Trapezoidal', 'Q', 0.013, 0.0075, y_input= 0.427, b_input= 2, z_input= 1.5)
+# calcular_seccion('Triangular', 'yn', 0.013, 0.0075, 3.5, z_input=1.5)
+# calcular_seccion('Triangular', 'Q', 0.013, 0.0075, y_input= 0.84, z_input= 1.5)
+# calcular_seccion('Circular', 'yn', 0.013, 0.0075, 3.5, D_input=3)
+# calcular_seccion('Circular', 'Q', 0.013, 0.0075, y_input= 0.608, D_input=3)
 
 
 
-# class SeccionCircular:
-#     def __init__(self):
-#         self.do = None
-#         self.y = None
-
-#     def set_diametro(self, value):
-#         self.do = value
-
-#     def set_altura(self, value):
-#         self.y = value
-
-#     def set_area(self):
-#         self.area = self.b * self.y
-
-#     def set_perimetro_mojado(self):
-#         self.perimetro_mojado = self.b + (self.y * 2)
-
-#     def set_radio_hidraulico(self):
-#         self.radio_hidraulico = self.area / self.perimetro_mojado
-
-#     def set_ancho_superficial(self):
-#         self.ancho_superficial = self.b 
-
-#     def set_profundidad_hidraulica(self):
-#         self.profundidad_hidraulica = self.y
-
-#     def set_factor_de_seccion(self):
-#         self.factor_de_seccion = self.b * (self.y**1.5)
 
 secciones = [
     "Cuadrada",
@@ -87,16 +97,6 @@ def elegir_seccion():
 
     seccion.calc_yn()
     return seccion.__dict__, seccion_elegida
-
-# def calculo_de_elementos_geometricos(seccion):
-#     seccion_elegida = seccion["tipo de sección"]
-#     if seccion_elegida == "Cuadrada":
-#         A = seccion['b']*seccion['']
-#     elif seccion_elegida == "Triangular":
-#     elif seccion_elegida == "Trapezoidal":
-#     elif seccion_elegida == "Circular":
-
-seccion = elegir_seccion()
 
 
 
