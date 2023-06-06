@@ -64,6 +64,7 @@ class Selecciones(customtkinter.CTkFrame):
         selecciones_label = customtkinter.CTkLabel(self, text='Tipo de canal', anchor='center')
         selecciones_label.grid(row=0, column=0, sticky="ns" )
         self.tipo_de_canal = ttk.Combobox(self, values=['Rectangular', 'Trapezoidal', 'Triangular', 'Circular'])
+        self.tipo_de_canal.current(1)
         self.tipo_de_canal.grid(row=0, column=1, padx= 30)
 
         self.calculo_var = customtkinter.StringVar(value="yn")
