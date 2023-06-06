@@ -2,6 +2,7 @@
 __pycache__/
 Lib/
 Scripts/
+output/
 share/
 .vscode/
 *.py[cod]
