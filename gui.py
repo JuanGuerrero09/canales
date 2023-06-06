@@ -6,13 +6,14 @@ from tkinter import messagebox
 from hidraulica_canales import calcular_seccion
 
 class MyEntries(customtkinter.CTkFrame):
-    def __init__(self, master, values, section = None):
+    def __init__(self, master, values, section = None, calculation=None):
         super().__init__(master)
         self.values = values 
         self.section = section
         definition = {
             'n': 'Rugosidad',
-            'Q / yn': 'Caudal o altura',
+            'Q': 'Caudal',
+            'yn': 'Altura',
             'b': 'Ancho de base',
             'So': 'Pendiente',
             'z': 'Talud',
@@ -28,34 +29,45 @@ class MyEntries(customtkinter.CTkFrame):
         }
         for i, value in enumerate(self.values):
             exclude = self.disable[section] if section != None else ['z', 'D', 'b']
+            calc = 'Q' if calculation == 'Q' else 'yn'
+            if value == calc:
+                continue
             entry_frame = customtkinter.CTkFrame(self)
             entry_frame.grid(row=1, column=i, padx=10, pady=(10, 0), sticky="w")
             entry_label = customtkinter.CTkLabel(entry_frame, text=definition[value])
             entry_label.grid(row=0)
-            print(value in exclude)
             entry = customtkinter.CTkEntry(entry_frame, placeholder_text=value)
             if value in exclude: 
                 entry.configure(state='disabled') 
             entry.grid(row=1)
-            self.entries[value] = entry
+            self.entries[value] = [entry, entry_label]
 
     def show_entries(self, exclude):
-        print(self.entries)
         for value in self.entries:
-            entry = self.entries[value]
+            entry = self.entries[value][0]
             disabled_values = self.disable[exclude]
-            print(entry, self.disable[exclude])
-            print(value, value in disabled_values)
             if value not in disabled_values: 
                 entry.configure(state='normal') 
             else:
                 entry.configure(state='disabled') 
 
+    def change_calculation(self, calc):
+        old_calc = 'yn' if calc == 'Q' else 'Q'
+        self.entries[old_calc] = self.entries[calc]
+        text = 'Altura' if calc == 'Q' else 'Caudal'
+        self.entries[old_calc][0].configure(placeholder_text=old_calc)
+        self.entries[old_calc][1].configure(text=text)
+        del self.entries[calc]
+
+
 
     def get(self):
         entry_values = {}
+        entry_labels = {}
         for key, entry in self.entries.items():
-            entry_values[key] = entry.get()
+            # print(key, entry[0].get(), entry[1].cget('text'))
+            entry_values[key] = entry[0].get()
+            entry_labels[key] = entry[1].cget('text')
         return entry_values
     
 class Selecciones(customtkinter.CTkFrame):
@@ -104,13 +116,15 @@ class App(customtkinter.CTk):
         self.selecciones = Selecciones(self)
         self.selecciones.grid(row=1, columnspan=2)
         self.selecciones.tipo_de_canal.bind("<<ComboboxSelected>>", self.show_enabled)
+        self.selecciones.calculo_var.trace('w', self.select_calc)
 
 
         self.parameters = customtkinter.CTkFrame(self)
         self.parameters.grid(row=2, columnspan=2)
         self.section = 'Trapezoidal'
+        self.calc = 'yn'
 
-        self.hydraulic_parameters = MyEntries(self.parameters, values=['n', 'So', 'Q / yn'])
+        self.hydraulic_parameters = MyEntries(self.parameters, values=['n', 'So', 'Q', 'yn'])
         self.hydraulic_parameters.grid(row=0, column=0)
 
         # RENDERIZADO CONDICIONAL
@@ -125,7 +139,12 @@ class App(customtkinter.CTk):
     def show_enabled(self, event):
         self.section = self.selecciones.get()[0]
         self.geometric_parameters.show_entries(self.section)
-        print(self.section)
+
+    def select_calc(self, *args):
+        self.calc = self.selecciones.calculo_var.get()
+        self.hydraulic_parameters.change_calculation(self.calc)
+
+
 
 
     def button_callback(self):
@@ -134,14 +153,11 @@ class App(customtkinter.CTk):
         seccion, calculo = self.selecciones.get()
         n_input = float(hydraulic_params['n'])
         So_input = float(hydraulic_params['So'])
-        Q_input = float(hydraulic_params['Q / yn']) if calculo != "Q" else None
-        y_input = float(hydraulic_params['Q / yn']) if calculo != "yn" else Symbol('y')
+        Q_input = float(hydraulic_params['Q']) if calculo != "Q" and 'Q' in  hydraulic_params else None
+        y_input = float(hydraulic_params['yn']) if calculo != "yn" else Symbol('y')
         b_input = float(geometric_params['b']) if geometric_params['b'] != "" else None
         z_input = float(geometric_params['z']) if geometric_params['z'] != "" else None
         D_input = float(geometric_params['D']) if geometric_params['D'] != "" else None
-        print("button pressed", self.hydraulic_parameters.get(), self.geometric_parameters.get(), seccion)
-        print(type(b_input))
-        print('mi seccion es: ', seccion, calculo, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
         seccion_calculada = calcular_seccion(seccion, calculo, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
 
         self.dialog = Dialogo(seccion_calculada)
