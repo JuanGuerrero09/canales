@@ -45,7 +45,7 @@ class Canal(object):
         self.Q = value
 
     def __str__(self) -> str:
-        return f"Altura Normal: {self.y:.3f}\nRugosidad: {self.n}\nPendiente: {self.So}\nCaudal: {self.Q} m/s\nÁrea: {self.area:.3f}\nVelocidad: {self.velocidad:.3f}\nFroude: {self.froude:.3f}\nTipo de Flujo: {self.tipo_de_flujo}\n\n"
+        return f"Altura Normal: {self.y:.3f}\nRugosidad: {self.n}\nPendiente: {self.So}\nCaudal: {self.Q:.2f} m/s\nÁrea: {self.area:.3f}\nVelocidad: {self.velocidad:.3f}\nFroude: {self.froude:.3f}\nTipo de Flujo: {self.tipo_de_flujo}\n\n"
     
     # Áncho Superficial: {self.ancho_superficial:.3f}\n
 
@@ -78,8 +78,8 @@ class SeccionRectangular(Canal):
     def calc_yn(self):
         if(type(self.y) is Symbol):
             self.calc_propiedades()
-            self.y = solve(((self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n) - self.Q, self.y)[0]
-            print(f"La profundidad normal es: {self.y:.3f}\n")
+            sol = (self.area * self.radio_hidraulico**(2/3) * self.So**0.5) / self.n
+            self.y = nsolve(sol - self.Q, self.y, 1)
             self.calc_propiedades()
         else: 
             print('ya se tiene la altura: ' + str(self.y))
