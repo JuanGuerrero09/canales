@@ -20,15 +20,11 @@ def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=
         # y_input = float(input("Defina la altura: "))
         seccion = SeccionCircular(n_input, So_input, Q_input, D_input, y_input)
 
-    print('vamos acá')
-
     if (calculo == 'yn'):
         seccion.calc_yn()
 
     elif(calculo == 'Q'):
         seccion.caudal_manning()
-
-    print(seccion)
     
     return seccion
 

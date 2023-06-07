@@ -1,9 +1,13 @@
 from typing import Optional, Tuple, Union
 from sympy import Symbol
 import customtkinter
+import tkinter as tk
+import turtle
 from tkinter import ttk
 from tkinter import messagebox 
 from hidraulica_canales import calcular_seccion
+from math import sqrt, atan, degrees, radians
+from ilustraciones import draw_trapezoidal_channel, draw_circle, draw_triangle, draw_rectangular
 
 class MyEntries(customtkinter.CTkFrame):
     def __init__(self, master, values, section = None, calculation=None):
@@ -94,11 +98,65 @@ class Selecciones(customtkinter.CTkFrame):
     def set(self, value):
         self.calculo_var.set(value)
 
+class Canvas(tk.Canvas):
+    def __init__(self, master):
+        super().__init__(master, width=300, height=300)
+        self.create_turtle()
+
+    def create_turtle(self):
+        turtle_screen = self.get_turtle_screen()
+        turtle_canvas = turtle_screen.getcanvas()
+
+    def get_turtle_screen(self):
+        turtle_screen = turtle.TurtleScreen(self)
+        turtle_screen.bgcolor("white")
+        turtle_screen.delay(0)
+        return turtle_screen
+
+    def draw_channel(self, section):
+        canal = section.get('tipo_canal')
+        yn = section.get('y')
+        b = section.get('b')
+        z = section.get('z')
+        diameter = section.get('D')
+        angle = degrees(section.get('theta')) if section.get('theta') != None else None
+
+        match canal:
+            case 'Trapezoidal':
+                draw_trapezoidal_channel(yn=yn, z=z, b=b, turtle_screen=self.get_turtle_screen())
+            case 'Circular':
+                draw_circle(diameter=diameter, angle=angle, turtle_screen=self.get_turtle_screen())
+            case 'Rectangular':
+                draw_rectangular(yn=yn, b=b, turtle_screen=self.get_turtle_screen())
+            case 'Triangular':
+                draw_triangle(yn=yn, z=z,turtle_screen=self.get_turtle_screen())
+        
+        # self.delete(tk.ALL)
+        # draw_trapezoidal_channel(yn=0.5, z=0.5, b=2, turtle_screen=self.get_turtle_screen())
+        # draw_triangle(yn=1.5, z=0.5, turtle_screen=self.get_turtle_screen())
+        # draw_circle(diameter=2, angle=40, turtle_screen=self.get_turtle_screen())
+        # draw_rectangular(yn=1.5, b=2, turtle_screen=self.get_turtle_screen())
+
+
+
+
+
 class Dialogo():
     def __init__(self, text):
-        super().__init__()
         self.text = text
+
     def show(self):
+        # Crear la ventana del diálogo
+        # dialog = tk.Toplevel()
+        # dialog.title("Canal Trapezoidal")
+
+        # # Crear el widget Canvas dentro del diálogo
+        # canvas = Canvas(dialog)
+
+        # # Llamar a la función para dibujar el canal trapezoidal
+        # canvas.draw_channel()
+
+        # Mostrar el diálogo
         messagebox.showinfo(title='Resultados', message=self.text)
 
 
@@ -107,7 +165,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("Canales IDOM")
-        self.geometry("500x350")
+        self.geometry("500x550")
         self.grid_columnconfigure((0, 1), weight=1)
 
         self.title = customtkinter.CTkLabel(self, text='Canales IDOM', justify='center', height=35)
@@ -135,6 +193,14 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(self, text="Calc Value", command=self.button_callback)
         self.button.grid(row=4, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
 
+        self.results_frame = tk.Frame(self)
+        self.results_frame.grid(row=5)
+
+        self.canvas = Canvas(self.results_frame)
+        self.canvas.grid(row=0, column=0, padx=2)
+
+        self.results = tk.Label(self.results_frame, text='', width=25, justify='left')
+        self.results.grid(row=0, column=1, sticky='w', pady=10, padx=10)
     
     def show_enabled(self, event):
         self.section = self.selecciones.get()[0]
@@ -159,8 +225,13 @@ class App(customtkinter.CTk):
         z_input = float(geometric_params['z']) if geometric_params['z'] != "" else None
         D_input = float(geometric_params['D']) if geometric_params['D'] != "" else None
         seccion_calculada = calcular_seccion(seccion, calculo, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
-
+        self.canvas.draw_channel(seccion_calculada.__dict__)
+        self.results.config(text = seccion_calculada, font=("Arial", 12), anchor="w")
+        print(seccion_calculada.__dict__['n'])
+        print(seccion_calculada.__dict__['Q'])
+        print(seccion_calculada.__dict__['y'])
         self.dialog = Dialogo(seccion_calculada)
+        # self.dialog = Dialogo(seccion_calculada.__dict__)
         self.dialog.show()
         
         
