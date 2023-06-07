@@ -128,7 +128,7 @@ class SeccionTrapezoidal(Canal):
         return self.y
     
     def __str__(self):
-        return f"Canal: {self.tipo_canal}\nDimensiones: \n\tBase: {self.b}\n\tPendiente: {self.b}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
+        return f"Canal: {self.tipo_canal}\nDimensiones: \n\tBase: {self.b}\n\tPendiente: {self.z}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
 
 
 

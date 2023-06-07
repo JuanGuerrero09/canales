@@ -79,7 +79,7 @@ class Selecciones(customtkinter.CTkFrame):
         super().__init__(master)
         selecciones_label = customtkinter.CTkLabel(self, text='Tipo de canal', anchor='center')
         selecciones_label.grid(row=0, column=0, sticky="ns" )
-        self.tipo_de_canal = ttk.Combobox(self, values=['Rectangular', 'Trapezoidal', 'Triangular', 'Circular'])
+        self.tipo_de_canal = ttk.Combobox(self, values=['Rectangular', 'Trapezoidal', 'Triangular', 'Circular'], font="Arial 12")
         self.tipo_de_canal.current(1)
         self.tipo_de_canal.grid(row=0, column=1, padx= 30)
 
@@ -165,7 +165,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("Canales IDOM")
-        self.geometry("500x550")
+        self.geometry("550x550")
         self.grid_columnconfigure((0, 1), weight=1)
 
         self.title = customtkinter.CTkLabel(self, text='Canales IDOM', justify='center', height=35)
@@ -194,10 +194,13 @@ class App(customtkinter.CTk):
         self.button.grid(row=4, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
 
         self.results_frame = tk.Frame(self)
-        self.results_frame.grid(row=5)
+        self.results_frame.grid(row=5, columnspan=2)
 
         self.canvas = Canvas(self.results_frame)
         self.canvas.grid(row=0, column=0, padx=2)
+        self.canvas.create_text(120, -113, text="z", fill="black", font=('Helvetica 15 bold'))
+        self.canvas.create_text(137, -130, text="1", fill="black", font=('Helvetica 15 bold'))
+        self.canvas.create_polygon(130, -120, 130, -140, 105, -120)
 
         self.results = tk.Label(self.results_frame, text='', width=25, justify='left')
         self.results.grid(row=0, column=1, sticky='w', pady=10, padx=10)
@@ -227,12 +230,10 @@ class App(customtkinter.CTk):
         seccion_calculada = calcular_seccion(seccion, calculo, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
         self.canvas.draw_channel(seccion_calculada.__dict__)
         self.results.config(text = seccion_calculada, font=("Arial", 12), anchor="w")
-        print(seccion_calculada.__dict__['n'])
-        print(seccion_calculada.__dict__['Q'])
-        print(seccion_calculada.__dict__['y'])
-        self.dialog = Dialogo(seccion_calculada)
-        # self.dialog = Dialogo(seccion_calculada.__dict__)
-        self.dialog.show()
+        # print(seccion_calculada.__dict__['y'])
+        # self.dialog = Dialogo(seccion_calculada)
+        # # self.dialog = Dialogo(seccion_calculada.__dict__)
+        # self.dialog.show()
         
         
 
