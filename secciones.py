@@ -98,6 +98,7 @@ class SeccionTrapezoidal(Canal):
         self.y = y
 
     def calc_propiedades(self):
+        print(self.y, self.z)
         self.area = (self.b + (self.y*self.z)) * self.y
         self.perimetro_mojado = self.b + (2 * self.y * (1 + self.z**2)**(1/2))
         self.radio_hidraulico = self.area / self.perimetro_mojado
@@ -186,7 +187,7 @@ class SeccionCircular(Canal):
         
 
     def __str__(self):
-        return f"\nCanal: {self.tipo_canal}\nDimensiones: \n\tDiametro del canal: {self.D}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
+        return f"\nCanal: {self.tipo_canal}\nDimensiones: \n\tDiametro: {self.D}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
     
     def caudal_manning(self):
         self.calc_propiedades()

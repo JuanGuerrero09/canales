@@ -6,17 +6,17 @@ from math import sqrt, atan, degrees, sin, cos, radians
 def draw_trapezoidal_channel(yn, b, z, turtle_screen):
 
     # Dibujar el canal trapezoidal
-    factor = 300 / (b + (2 * (yn + 0.3) *z))
+    factor = 250 / (b + (2 * (yn + 0.3) *z))
 
     side_slope = z if z < 5 else 5
-    if (yn + 0.3) * factor > 160:
-        factor = 160 / (yn + 0.3)
+    if (yn + 0.3) * factor > 130:
+        factor = 130 / (yn + 0.3)
     elif (yn + 0.3) * factor < 40:
         factor = 40 / (yn + 0.3)
     channel_depth = (yn + 0.3) * factor
     yn = yn * factor 
     angle = degrees(atan(1 / side_slope))
-    base_width = b * factor if b * factor < 120 else 120
+    base_width = b * factor if b * factor < 105 else 105
 
     top_width = base_width + 2 * (channel_depth * side_slope)
     yn_top_width = base_width + 2 * (yn * side_slope) 
@@ -70,11 +70,11 @@ def draw_trapezoidal_channel(yn, b, z, turtle_screen):
 def draw_rectangular(yn, b, turtle_screen):
 
     # Dibujar el canal trapezoidal
-    factor = 200 / b 
+    factor = 170 / b 
     print(factor)
     base_width = b * factor
-    if (yn + 0.3) * factor > 170:
-        factor = 170 / (yn + 0.3)
+    if (yn + 0.3) * factor > 150:
+        factor = 150 / (yn + 0.3)
     elif (yn + 0.3) * factor < 40:
         factor = 40 / (yn + 0.3)
     height = (yn + 0.3) * factor
@@ -120,9 +120,9 @@ def draw_rectangular(yn, b, turtle_screen):
 def draw_triangle(z, yn, turtle_screen):
     # Dibujar el canal triangular
 
-    factor = 200 / (2 * yn * z)
+    factor = 180 / (2 * yn * z)
     print(factor)
-    if (yn + 0.2) * factor > 170:
+    if (yn + 0.2) * factor > 150:
         factor = 170 / (yn + 0.3)
     elif (yn + 0.3) * factor < 100:
         factor = 100 / (yn + 0.3)
@@ -171,7 +171,7 @@ def draw_triangle(z, yn, turtle_screen):
 
 def draw_circle(diameter, angle, turtle_screen):
 
-    diameter = 200
+    diameter = 180
     # Configuración inicial de Turtle
     turtle_obj = turtle.RawTurtle(turtle_screen)
     turtle_obj.speed(100)
