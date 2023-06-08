@@ -1,24 +1,24 @@
 # Librerías
-from secciones import SeccionRectangular, SeccionTrapezoidal, SeccionTriangular, SeccionCircular
+from secciones import SeccionRectangle, SeccionTrapezoid, SeccionTriangle, SeccionCircle
 from sympy import Symbol
 
 def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=None, z_input=None, D_input= None, y_input = Symbol('y')):
-    if seccion == "Rectangular":
+    if seccion == "Rectangle":
         # y_input = float(input("Defina la altura: "))
-        seccion = SeccionRectangular(n_input, So_input, Q_input, b_input, y_input)
+        seccion = SeccionRectangle(n_input, So_input, Q_input, b_input, y_input)
 
 
-    elif seccion == "Triangular":
+    elif seccion == "Triangle":
         # y_input = float(input("Defina la altura: "))
-        seccion = SeccionTriangular(n_input, So_input, Q_input, z_input, y_input)
+        seccion = SeccionTriangle(n_input, So_input, Q_input, z_input, y_input)
 
-    elif seccion == "Trapezoidal":
+    elif seccion == "Trapezoid":
         # y_input = float(input("Defina la altura: "))
-        seccion = SeccionTrapezoidal(n_input, So_input, Q_input, b_input, z_input, y_input)
+        seccion = SeccionTrapezoid(n_input, So_input, Q_input, b_input, z_input, y_input)
 
-    elif seccion == "Circular":
+    elif seccion == "Circle":
         # y_input = float(input("Defina la altura: "))
-        seccion = SeccionCircular(n_input, So_input, Q_input, D_input, y_input)
+        seccion = SeccionCircle(n_input, So_input, Q_input, D_input, y_input)
 
     if (calculo == 'yn'):
         seccion.calc_yn()
@@ -28,23 +28,23 @@ def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=
     
     return seccion
 
-# calcular_seccion('Rectangular', 'yn', 0.013, 0.0075, 3.5, b_input=2)
-# calcular_seccion('Rectangular', 'Q', 0.013, 0.0075, y_input= 0.532, b_input= 2)
-# calcular_seccion('Trapezoidal', 'yn', 0.033, 0.0075, 3.5, 2, 1.5)
-# calcular_seccion('Trapezoidal', 'Q', 0.033, 0.0075, y_input= 0.711, b_input= 2, z_input= 1.5)
-# calcular_seccion('Triangular', 'yn', 0.033, 0.0075, 3.5, z_input=1.5)
-# calcular_seccion('Triangular', 'Q', 0.033, 0.0075, y_input= 1.191, z_input= 1.5)
-# calcular_seccion('Circular', 'yn', 0.013, 0.0075, 3.5, D_input=3)
-# calcular_seccion('Circular', 'Q', 0.013, 0.0075, y_input= 0.608, D_input=3)
+# calcular_seccion('Rectangle', 'yn', 0.013, 0.0075, 3.5, b_input=2)
+# calcular_seccion('Rectangle', 'Q', 0.013, 0.0075, y_input= 0.532, b_input= 2)
+# calcular_seccion('Trapezoid', 'yn', 0.033, 0.0075, 3.5, 2, 1.5)
+# calcular_seccion('Trapezoid', 'Q', 0.033, 0.0075, y_input= 0.711, b_input= 2, z_input= 1.5)
+# calcular_seccion('Triangle', 'yn', 0.033, 0.0075, 3.5, z_input=1.5)
+# calcular_seccion('Triangle', 'Q', 0.033, 0.0075, y_input= 1.191, z_input= 1.5)
+# calcular_seccion('Circle', 'yn', 0.013, 0.0075, 3.5, D_input=3)
+# calcular_seccion('Circle', 'Q', 0.013, 0.0075, y_input= 0.608, D_input=3)
 
 
 
 
 # secciones = [
 #     "Cuadrada",
-#     "Triangular",
-#     "Trapezoidal",
-#     # "Circular",
+#     "Triangle",
+#     "Trapezoid",
+#     # "Circle",
 # ]
 
 # def elegir_seccion():
@@ -67,25 +67,25 @@ def calcular_seccion(seccion, calculo, n_input, So_input, Q_input=None, b_input=
 #     if seccion_elegida == "Cuadrada":
 #         b_input = float(input("Defina la base: "))
 #         # y_input = float(input("Defina la altura: "))
-#         seccion = SeccionRectangular(n_input, So_input, Q_input, b_input)
+#         seccion = SeccionRectangle(n_input, So_input, Q_input, b_input)
 
 
-#     elif seccion_elegida == "Triangular":
+#     elif seccion_elegida == "Triangle":
 #         z_input = float(input("Defina la base: "))
 #         # y_input = float(input("Defina la altura: "))
-#         seccion = SeccionTriangular(n_input, So_input, Q_input, z_input)
+#         seccion = SeccionTriangle(n_input, So_input, Q_input, z_input)
 
 
 
-#     elif seccion_elegida == "Trapezoidal":
+#     elif seccion_elegida == "Trapezoid":
 #         b_input = float(input("Defina la base: "))
 #         z_input = float(input("Defina la pendiente_lateral: "))
 #         # y_input = float(input("Defina la altura: "))
-#         seccion = SeccionTrapezoidal(n_input, So_input, Q_input, b_input, z_input)
+#         seccion = SeccionTrapezoid(n_input, So_input, Q_input, b_input, z_input)
 
 
-#     # elif seccion_elegida == "Circular":
-#     #     seccion = SeccionCircular()
+#     # elif seccion_elegida == "Circle":
+#     #     seccion = SeccionCircle()
 #     #     do_input = float(input("Defina el diámetro: "))
 #     #     y_input = float(input("Defina la altura: "))
 #     #     seccion.set_diametro(do_input)

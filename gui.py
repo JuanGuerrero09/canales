@@ -4,7 +4,7 @@ import turtle
 from tkinter import ttk
 from hidraulica_canales import calcular_seccion
 from math import sqrt, atan, degrees, radians
-from ilustraciones import draw_trapezoidal_channel, draw_circle, draw_triangle, draw_rectangular
+from ilustraciones import draw_Trapezoid_channel, draw_circle, draw_triangle, draw_Rectangle
 from custom_components import CustomEntry
 
 class MyEntries(tk.Frame):
@@ -13,21 +13,21 @@ class MyEntries(tk.Frame):
         self.values = values 
         self.section = section
         definition = {
-            'n': 'Rugosidad',
-            'Q': 'Caudal',
-            'yn': 'Altura',
-            'b': 'Ancho de base',
-            'So': 'Pendiente',
-            'z': 'Talud',
-            'D': 'Diametro'
+            'n': "Manning's Coef.",
+            'Q': 'Flow Rate [m3/s]',
+            'yn': 'Depth [m]',
+            'b': 'Bottom Width [m]',
+            'So': 'Channel Slope [m/m]',
+            'z': 'Side Slope',
+            'D': 'Diameter [m]'
         }
         self.entries = {}
 
         self.disable = {
-            'Rectangular': ['z', 'D'],
-            'Triangular': ['D', 'b'],
-            'Trapezoidal': ['D'],
-            'Circular': ['z', 'b'],
+            'Rectangle': ['z', 'D'],
+            'Triangle': ['D', 'b'],
+            'Trapezoid': ['D'],
+            'Circle': ['z', 'b'],
         }
         for i, value in enumerate(self.values):
             exclude = self.disable[section] if section != None else ['z', 'D', 'b']
@@ -78,9 +78,9 @@ class MyEntries(tk.Frame):
 class Selecciones(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        selecciones_label = tk.Label(self, text='Tipo de canal', anchor='center')
+        selecciones_label = tk.Label(self, text='Select Channel Type:', anchor='center')
         selecciones_label.grid(row=0, column=0, sticky="ns" )
-        self.tipo_de_canal = ttk.Combobox(self, values=['Rectangular', 'Trapezoidal', 'Triangular', 'Circular'], font="Arial 12")
+        self.tipo_de_canal = ttk.Combobox(self, values=['Rectangle', 'Trapezoid', 'Triangle', 'Circle'], font="Arial 12")
         self.tipo_de_canal.current(1)
         self.tipo_de_canal.grid(row=0, column=1, padx= 30)
 
@@ -88,8 +88,8 @@ class Selecciones(tk.Frame):
 
         self.tipo_de_calculo_frame = tk.Frame(self)
         self.tipo_de_calculo_frame.grid(row=0, column=2)
-        tipo_de_calculo = tk.Radiobutton(self.tipo_de_calculo_frame, value='yn', text='Calculo yn', variable=self.calculo_var)
-        tipo_de_calculo2 = tk.Radiobutton(self.tipo_de_calculo_frame, value='Q', text='Calculo caudal', variable=self.calculo_var)
+        tipo_de_calculo = tk.Radiobutton(self.tipo_de_calculo_frame, value='yn', text='Calculate Depth', variable=self.calculo_var)
+        tipo_de_calculo2 = tk.Radiobutton(self.tipo_de_calculo_frame, value='Q', text='Calculate Flow', variable=self.calculo_var)
         tipo_de_calculo.grid(row=0, column=2, sticky="w")
         tipo_de_calculo2.grid(row=1, column=2, sticky="w")
 
@@ -123,27 +123,33 @@ class Canvas(tk.Canvas):
         angle = degrees(section.get('theta')) if section.get('theta') != None else None
 
         match canal:
-            case 'Trapezoidal':
-                draw_trapezoidal_channel(yn=yn, z=z, b=b, turtle_screen=self.get_turtle_screen())
-            case 'Circular':
+            case 'Trapezoid':
+                draw_Trapezoid_channel(yn=yn, z=z, b=b, turtle_screen=self.get_turtle_screen())
+            case 'Circle':
                 draw_circle(diameter=diameter, angle=angle, turtle_screen=self.get_turtle_screen())
-            case 'Rectangular':
-                draw_rectangular(yn=yn, b=b, turtle_screen=self.get_turtle_screen())
-            case 'Triangular':
+            case 'Rectangle':
+                draw_Rectangle(yn=yn, b=b, turtle_screen=self.get_turtle_screen())
+            case 'Triangle':
                 draw_triangle(yn=yn, z=z,turtle_screen=self.get_turtle_screen())
+
+class ResultsWindow(tk.Toplevel):
+    def __init__(self):
+        super.__init__()
+        self.title('Results')
+        self.geometry('400x400')
+        label = tk.Label(self, text='Results: ')
+        label.pack()
         
-
-
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("Canales IDOM")
-        self.geometry("550x550")
+        self.title("Hydrosolve")
+        self.geometry("650x550")
         self.grid_columnconfigure((0, 1), weight=1)
 
-        self.title = tk.Label(self, text='Canales IDOM', justify='center', height=2)
+        self.title = tk.Label(self, text='Hydrosolve', justify='center', height=2, font=('Helvetica 16 bold'))
         self.title.grid(row=0, columnspan=2)
 
         self.selecciones = Selecciones(self)
@@ -154,7 +160,7 @@ class App(tk.Tk):
 
         self.parameters = tk.Frame(self)
         self.parameters.grid(row=2, columnspan=2)
-        self.section = 'Trapezoidal'
+        self.section = 'Trapezoid'
         self.calc = 'yn'
 
         self.hydraulic_parameters = MyEntries(self.parameters, values=['n', 'So', 'Q', 'yn'])
@@ -177,8 +183,10 @@ class App(tk.Tk):
         self.canvas.create_text(116, -110, text="1", fill="black", font=('Helvetica 14 bold'))
         self.canvas.create_polygon(110, -100, 110, -120, 90, -100)
 
-        self.results = tk.Label(self.results_frame, text='', width=25, justify='left')
-        self.results.grid(row=0, column=1, sticky='w', pady=10, padx=10)
+        self.results_data = tk.Frame(self.results_frame)
+        self.results_data.grid(row=0, column=1, sticky='w',  padx=10)
+        self.results = tk.Label(self.results_data, text='', width=25, justify='left')
+        self.results.grid(row=0, column=0, sticky='w',  padx=10)
     
     def show_enabled(self, event):
         self.section = self.selecciones.get()[0]

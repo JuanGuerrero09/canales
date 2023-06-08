@@ -26,11 +26,11 @@ class Canal(object):
                 froude_value = str(self.froude)
                 froude_value = float(froude_value)
                 if froude_value > 1.0:
-                    self.tipo_de_flujo = 'Supercrítico'
+                    self.tipo_de_flujo = 'Supercritical'
                 elif froude_value == 1.0:
-                    self.tipo_de_flujo = 'Crítico'
+                    self.tipo_de_flujo = 'Critical'
                 else:
-                    self.tipo_de_flujo = 'Subcrítico'
+                    self.tipo_de_flujo = 'Subcritical'
 
         else:
             pass
@@ -45,14 +45,14 @@ class Canal(object):
         self.Q = value
 
     def __str__(self) -> str:
-        return f"Altura Normal: {self.y:.3f}\nRugosidad: {self.n}\nPendiente: {self.So}\nCaudal: {self.Q:.2f} m/s\nÁrea: {self.area:.3f}\nVelocidad: {self.velocidad:.3f}\nFroude: {self.froude:.3f}\nTipo de Flujo: {self.tipo_de_flujo}\n\n"
+        return f"Results:\n\tDepth: {self.y:.3f} m\n\tFlow Rate: {self.Q:.2f} m3/s\n\tFlow Area: {self.area:.2f} m2\n\tFlow Velocity: {self.velocidad:.2f} m/s\n\tFroude Number: {self.froude:.3f}\nFlow Status: {self.tipo_de_flujo}\n\n"
     
     # Áncho Superficial: {self.ancho_superficial:.3f}\n
 
-class SeccionRectangular(Canal): 
+class SeccionRectangle(Canal): 
     def __init__(self, n, So, Q, b, y = Symbol('y')):
         super().__init__(n, So, Q)
-        self.tipo_canal = 'Rectangular'
+        self.tipo_canal = 'Rectangle'
         self.b = b
         self.y = y
 
@@ -68,7 +68,7 @@ class SeccionRectangular(Canal):
 
 
     def __str__(self):
-        return f"\nCanal: {self.tipo_canal}\nDimensiones: \n\tBase: {self.b}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
+        return f"\nChannel: {self.tipo_canal}\nDimensions: \n\tBottom Width: {self.b}\n{super().__str__()}"
     
     def caudal_manning(self):
         self.calc_propiedades()
@@ -82,17 +82,16 @@ class SeccionRectangular(Canal):
             self.y = nsolve(sol - self.Q, self.y, 1)
             self.calc_propiedades()
         else: 
-            print('ya se tiene la altura: ' + str(self.y))
             self.calc_propiedades()
         return self.y 
     
 
 
-class SeccionTrapezoidal(Canal):
+class SeccionTrapezoid(Canal):
 
     def __init__(self, n, So, Q, b, z, y = Symbol('y')):
         super().__init__(n, So, Q)
-        self.tipo_canal = 'Trapezoidal'
+        self.tipo_canal = 'Trapezoid'
         self.b = b
         self.z = z
         self.y = y
@@ -124,19 +123,18 @@ class SeccionTrapezoidal(Canal):
             self.y = nsolve(sol - self.Q, self.y, 1)  # Pasar self.y como variable simbólica
             self.calc_propiedades()
         else: 
-            print('ya se tiene la altura: ' + str(self.y))
             self.calc_propiedades()
         return self.y
     
     def __str__(self):
-        return f"Canal: {self.tipo_canal}\nDimensiones: \n\tBase: {self.b}\n\tPendiente: {self.z}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
+        return f"Channel: {self.tipo_canal}\nDimensions: \n\tBottom Width: {self.b}\n\tSide Slope: {self.z}\n{super().__str__()}"
 
 
 
-class SeccionTriangular(Canal):
+class SeccionTriangle(Canal):
     def __init__(self, n, So, Q, z, y = Symbol('y')):
         super().__init__(n, So, Q)
-        self.tipo_canal = 'Triangular'
+        self.tipo_canal = 'Triangle'
         self.z = z
         self.y = y
 
@@ -163,13 +161,13 @@ class SeccionTriangular(Canal):
             self.calc_propiedades()
 
     def __str__(self):
-        return f"Canal: {self.tipo_canal}\nDimensiones: \n\tPendiente: {self.z}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
+        return f"Channel: {self.tipo_canal}\nDimensions: \n\tSide Slope: {self.z}\n{super().__str__()}"
 
     
-class SeccionCircular(Canal): 
+class SeccionCircle(Canal): 
     def __init__(self, n, So, Q, D, y = Symbol('y')):
         super().__init__(n, So, Q)
-        self.tipo_canal = 'Circular'
+        self.tipo_canal = 'Circle'
         self.D = D
         self.y = y
         self.theta = acos((1 - ( 2 * (self.y / self.D)))) * 2
@@ -187,7 +185,7 @@ class SeccionCircular(Canal):
         
 
     def __str__(self):
-        return f"\nCanal: {self.tipo_canal}\nDimensiones: \n\tDiametro: {self.D}\n\tAltura de agua: {self.y:.3f}\n{super().__str__()}"
+        return f"\nChannel: {self.tipo_canal}\nDimensions: \n\tDiameter: {self.D}\n{super().__str__()}"
     
     def caudal_manning(self):
         self.calc_propiedades()

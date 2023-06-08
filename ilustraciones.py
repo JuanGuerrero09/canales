@@ -3,9 +3,9 @@ import tkinter as tk
 from math import sqrt, atan, degrees, sin, cos, radians
 
 
-def draw_trapezoidal_channel(yn, b, z, turtle_screen):
+def draw_Trapezoid_channel(yn, b, z, turtle_screen):
 
-    # Dibujar el canal trapezoidal
+    # Dibujar el canal Trapezoid
     factor = 250 / (b + (2 * (yn + 0.3) *z))
 
     side_slope = z if z < 5 else 5
@@ -64,12 +64,12 @@ def draw_trapezoidal_channel(yn, b, z, turtle_screen):
 
     turtle_screen.update()
 
-# Llamar a la función para dibujar el canal trapezoidal
-# draw_trapezoidal_channel(z=1.5, b=2, yn=0.542, trutle_screen=turtle_screen)
+# Llamar a la función para dibujar el canal Trapezoid
+# draw_Trapezoid_channel(z=1.5, b=2, yn=0.542, trutle_screen=turtle_screen)
 
-def draw_rectangular(yn, b, turtle_screen):
+def draw_Rectangle(yn, b, turtle_screen):
 
-    # Dibujar el canal trapezoidal
+    # Dibujar el canal Trapezoid
     factor = 170 / b 
     print(factor)
     base_width = b * factor
@@ -118,7 +118,7 @@ def draw_rectangular(yn, b, turtle_screen):
     turtle_screen.update()
 
 def draw_triangle(z, yn, turtle_screen):
-    # Dibujar el canal triangular
+    # Dibujar el canal Triangle
 
     factor = 180 / (2 * yn * z)
     print(factor)
