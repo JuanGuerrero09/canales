@@ -49,6 +49,9 @@ class Canal(object):
     
     # Áncho Superficial: {self.ancho_superficial:.3f}\n
 
+    def get_parameters(self):
+        return self.__dict__
+
 class SeccionRectangle(Canal): 
     def __init__(self, n, So, Q, b, y = Symbol('y')):
         super().__init__(n, So, Q)

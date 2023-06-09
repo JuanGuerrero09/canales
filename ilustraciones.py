@@ -63,6 +63,7 @@ def draw_Trapezoid_channel(yn, b, z, turtle_screen):
     turtle_obj.end_fill()
 
     turtle_screen.update()
+    return turtle_obj
 
 # Llamar a la función para dibujar el canal Trapezoid
 # draw_Trapezoid_channel(z=1.5, b=2, yn=0.542, trutle_screen=turtle_screen)

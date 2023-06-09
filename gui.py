@@ -6,6 +6,7 @@ from hidraulica_canales import calcular_seccion
 from math import sqrt, atan, degrees, radians
 from ilustraciones import draw_Trapezoid_channel, draw_circle, draw_triangle, draw_Rectangle
 from custom_components import CustomEntry
+from PIL import ImageGrab
 
 class MyEntries(tk.Frame):
     def __init__(self, master, values, section = None, calculation=None):
@@ -121,7 +122,6 @@ class Canvas(tk.Canvas):
         z = section.get('z')
         diameter = section.get('D')
         angle = degrees(section.get('theta')) if section.get('theta') != None else None
-
         match canal:
             case 'Trapezoid':
                 draw_Trapezoid_channel(yn=yn, z=z, b=b, turtle_screen=self.get_turtle_screen())
@@ -132,13 +132,6 @@ class Canvas(tk.Canvas):
             case 'Triangle':
                 draw_triangle(yn=yn, z=z,turtle_screen=self.get_turtle_screen())
 
-class ResultsWindow(tk.Toplevel):
-    def __init__(self):
-        super.__init__()
-        self.title('Results')
-        self.geometry('400x400')
-        label = tk.Label(self, text='Results: ')
-        label.pack()
         
 
 class App(tk.Tk):
@@ -149,8 +142,8 @@ class App(tk.Tk):
         self.geometry("650x550")
         self.grid_columnconfigure((0, 1), weight=1)
 
-        self.title = tk.Label(self, text='Hydrosolve', justify='center', height=2, font=('Helvetica 16 bold'))
-        self.title.grid(row=0, columnspan=2)
+        self.title_label = tk.Label(self, text='Hydrosolve', justify='center', height=2, font=('Helvetica 16 bold'))
+        self.title_label.grid(row=0, columnspan=2)
 
         self.selecciones = Selecciones(self)
         self.selecciones.grid(row=1, columnspan=2)
@@ -213,8 +206,53 @@ class App(tk.Tk):
         seccion_calculada = calcular_seccion(seccion, calculo, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
         self.canvas.draw_channel(seccion_calculada.__dict__)
         self.results.config(text = seccion_calculada, font=("Arial", 12), anchor="w")
+        print(seccion_calculada.__dict__)
+        ####
+
+        x = self.canvas.winfo_rootx() + 52
+        y = self.canvas.winfo_rooty() + 110
+        width = self.canvas.winfo_width() + 50
+        height = self.canvas.winfo_height() + 20
+
+        # Capturar la imagen del canvas utilizando ImageGrab
+        image = ImageGrab.grab((x, y, x + width, y + height))
+        print('x1: ', x, y, 'x2', x + width, y + height)
+        image.save('canvas_image.png')
+        image.show()
+
+        ####
+        result_window = ResultsWindow(seccion_calculada)
         
-        
+class ResultsWindow(tk.Toplevel):
+    def __init__(self, section):
+        super().__init__()  # Corrected super() call
+        self.geometry('600x600')
+        self.result = tk.Label(self, text=section)
+        self.result.grid(row=0, column=0)
+        self.canvas = Canvas(self)
+        self.canvas.draw_channel(section.__dict__)
+        self.canvas.grid(row=1, column=0)
+        self.get_picture()
+
+    def get_picture(self):
+        self.canvas.update_idletasks()
+        x = self.canvas.winfo_rootx() 
+        y = self.canvas.winfo_rooty() 
+        width = self.canvas.winfo_width() 
+        height = self.canvas.winfo_height() 
+        # x = self.canvas.winfo_rootx() + 52
+        # y = self.canvas.winfo_rooty() + 110
+        # width = self.canvas.winfo_width() + 50
+        # height = self.canvas.winfo_height() + 20
+
+        # Capturar la imagen del canvas utilizando ImageGrab
+        image = ImageGrab.grab((x, y, x + width, y + height))
+        print('x1: ', x, y, 'x2', x + width, y + height)
+        image.save('canvas_image.png')
+        image.show()
+
+
+
 
 
 app = App()
