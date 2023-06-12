@@ -1,68 +1,15 @@
 import xlsxwriter
 from open_flow import TrapezoidalChannel
+from utils import definitions, trim_decimals
 
 
 
 data = TrapezoidalChannel(n=0.013, So=0.0075, Q=3.5, b=2, z=1.5).__dict__
-
-definition = {
-            'n': "Manning's Coef.",
-            'So': 'Channel Slope [m/m]',
-            'Q': 'Flow Rate [m3/s]',
-            'y': 'Depth [m]',
-            'b': 'Bottom Width [m]',
-            'z': 'Side Slope',
-            'D': 'Diameter [m]',
-            'a': 'Area [m2]',
-            'rh': 'Hydraulic Radius',
-            'dh': 'Hydraulic Depth',
-            'tw': 'Top Width [m]',
-            'p': 'Wetted Perimeter [m]',
-            'f': 'Froude Number',
-            'v': 'Velocity [m/s]',
-            'flow_status': 'Flow Status',
-            'zc': 'Section Factor',
-            'yc': 'WIP',
-            'vc': 'WIP',
-        }
-
-def trim_decimals(value):
-    result_value = str(value)
-    decimal_index = result_value.find(".")
-    if decimal_index != -1:
-        decimals = len(result_value) - decimal_index - 1
-    else:
-        decimals = 0
-    if decimals and int(decimals) > 4:
-        return f'{value:.2f}'
-    else:
-        return value
-
-def formater_str(results):
-    formated_results = ''
-    for value in definition:
-        if value in results:
-            formated_results += definition[value]
-            result_value = results[value]
-            formated_value = trim_decimals(result_value) 
-            formated_results += f' = {formated_value}\n'
-    return formated_results
-
-
-formater_str(data)
-disable = {
-            'Rectangle': ['z', 'D'],
-            'Triangle': ['D', 'b'],
-            'Trapezoid': ['D'],
-            'Circle': ['z', 'b'],
-        }
-
-input = ['b, z, D,']
+print(data)
 
 
 
-calc = 'Q'
-# objeto de resultados, yn / q, tipo de canal
+
 
 workbook = xlsxwriter.Workbook('ChannelReport.xlsx')
 worksheet = workbook.add_worksheet('Data')
@@ -124,14 +71,16 @@ row += 1
 
 parameters = ['n', 'So', 'Q', 'b', 'y', 'z', 'D']
 
-# definition = frozenset(definition.items())
+results = ['a', 'p','rh','tw','dh','zc', 'v', 'yc', 'vc', 'channel_type', 'flow_status', 'f', ]
+
+# definitions = frozenset(definitions.items())
 
 for key in data:
     initial_row = row
     if key in parameters:
         worksheet.write(row, col, key, bold)
         worksheet.write(row, col + 1, trim_decimals(data[key]))
-        worksheet.write(row, col + 2, definition[key], ital)
+        worksheet.write(row, col + 2, definitions[key], ital)
         row += 1  
     final_row = row
 
@@ -146,10 +95,11 @@ row+=1
 # worksheet.insert_image('E2', './logo.png')
 
 for key in data:
-    if key not in parameters:
+    print(key)
+    if key in results:
         worksheet.write(row, col, key, bold)
         worksheet.write(row, col + 1, trim_decimals(data[key]))
-        worksheet.write(row, col + 2, definition[key], ital)
+        worksheet.write(row, col + 2, definitions[key], ital)
         row += 1 
 
 worksheet.print_area(0,0, row, col + 1)

@@ -2,11 +2,17 @@ from sympy import Symbol
 import tkinter as tk
 import turtle
 from tkinter import ttk
-from hidraulica_canales import calcular_seccion
 from math import sqrt, atan, degrees, radians
 from ilustraciones import draw_Trapezoid_channel, draw_circle, draw_triangle, draw_Rectangle
 from custom_components import CustomEntry
 from PIL import ImageGrab
+import sys
+sys.path.append('modules')
+
+import utils
+
+# Ahora puedes usar las funciones y variables definidas en modulo.py
+
 
 class MyEntries(tk.Frame):
     def __init__(self, master, values, section = None, calculation=None):
@@ -71,7 +77,6 @@ class MyEntries(tk.Frame):
         entry_values = {}
         entry_labels = {}
         for key, entry in self.entries.items():
-            # print(key, entry[0].get(), entry[1].cget('text'))
             entry_values[key] = entry[0].get()
             entry_labels[key] = entry[1].cget('text')
         return entry_values
@@ -116,20 +121,20 @@ class Canvas(tk.Canvas):
         return turtle_screen
 
     def draw_channel(self, section):
-        canal = section.get('tipo_canal')
+        channel = section.get('channel_type')
         yn = section.get('y')
         b = section.get('b')
         z = section.get('z')
         diameter = section.get('D')
         angle = degrees(section.get('theta')) if section.get('theta') != None else None
-        match canal:
-            case 'Trapezoid':
+        match channel:
+            case 'Trapezoidal':
                 draw_Trapezoid_channel(yn=yn, z=z, b=b, turtle_screen=self.get_turtle_screen())
-            case 'Circle':
+            case 'Circular':
                 draw_circle(diameter=diameter, angle=angle, turtle_screen=self.get_turtle_screen())
-            case 'Rectangle':
+            case 'Rectangular':
                 draw_Rectangle(yn=yn, b=b, turtle_screen=self.get_turtle_screen())
-            case 'Triangle':
+            case 'Triangular':
                 draw_triangle(yn=yn, z=z,turtle_screen=self.get_turtle_screen())
 
         
@@ -159,10 +164,8 @@ class App(tk.Tk):
         self.hydraulic_parameters = MyEntries(self.parameters, values=['n', 'So', 'Q', 'yn'])
         self.hydraulic_parameters.grid(row=0, column=0)
 
-        # RENDERIZADO CONDICIONAL
         self.geometric_parameters = MyEntries(self.parameters, values=['b', 'z', 'D'], section=self.section)
         self.geometric_parameters.grid(row=1, column=0)
-        #RENDERIZADO CONDICIONAL
         
         self.button = ttk.Button(self, text="Calc Value", command=self.button_callback)
         self.button.grid(row=4, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
@@ -178,8 +181,13 @@ class App(tk.Tk):
 
         self.results_data = tk.Frame(self.results_frame)
         self.results_data.grid(row=0, column=1, sticky='w',  padx=10)
+        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left')
+        self.results_title.grid(row=0, column=0, sticky='w',  padx=10)
         self.results = tk.Label(self.results_data, text='', width=25, justify='left')
-        self.results.grid(row=0, column=0, sticky='w',  padx=10)
+        self.results.grid(row=1, column=0, sticky='w',  padx=10)
+
+        self.more_results_button = tk.Button(self.results_data, text="More info", command=self.more_info_callback)
+        self.more_results_button.grid(row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
     
     def show_enabled(self, event):
         self.section = self.selecciones.get()[0]
@@ -190,12 +198,14 @@ class App(tk.Tk):
         self.hydraulic_parameters.change_calculation(self.calc)
 
 
+    def more_info_callback(self):
+        result_window = ResultsWindow(self.calculated_section)
 
 
     def button_callback(self):
         hydraulic_params = self.hydraulic_parameters.get()
         geometric_params = self.geometric_parameters.get()
-        seccion, calculo = self.selecciones.get()
+        section, calculo = self.selecciones.get()
         n_input = float(hydraulic_params['n'])
         So_input = float(hydraulic_params['So'])
         Q_input = float(hydraulic_params['Q']) if calculo != "Q" and 'Q' in  hydraulic_params else None
@@ -203,25 +213,23 @@ class App(tk.Tk):
         b_input = float(geometric_params['b']) if not geometric_params['b'].isalpha()  else None
         z_input = float(geometric_params['z']) if not geometric_params['z'].isalpha()  else None
         D_input = float(geometric_params['D']) if not geometric_params['D'].isalpha()  else None
-        seccion_calculada = calcular_seccion(seccion, calculo, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
-        self.canvas.draw_channel(seccion_calculada.__dict__)
-        self.results.config(text = seccion_calculada, font=("Arial", 12), anchor="w")
-        print(seccion_calculada.__dict__)
+        self.calculated_section = utils.calculate_section(section, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
+        self.canvas.draw_channel(self.calculated_section.__dict__)
+        self.results.config(text = utils.formater_str(self.calculated_section.__dict__, ['n', 'So', 'Q', 'y', 'z', 'D', 'b']), font=("Arial", 12), anchor="w")
         ####
+        # result_window = ResultsWindow(self.calculated_section)
 
-        x = self.canvas.winfo_rootx() + 52
-        y = self.canvas.winfo_rooty() + 110
-        width = self.canvas.winfo_width() + 50
-        height = self.canvas.winfo_height() + 20
+        # x = self.canvas.winfo_rootx() + 52
+        # y = self.canvas.winfo_rooty() + 110
+        # width = self.canvas.winfo_width() + 50
+        # height = self.canvas.winfo_height() + 20
 
         # Capturar la imagen del canvas utilizando ImageGrab
-        image = ImageGrab.grab((x, y, x + width, y + height))
-        print('x1: ', x, y, 'x2', x + width, y + height)
-        image.save('canvas_image.png')
-        image.show()
+        # image = ImageGrab.grab((x, y, x + width, y + height))
+        # image.save('canvas_image.png')
+        # image.show()
 
         ####
-        result_window = ResultsWindow(seccion_calculada)
         
 class ResultsWindow(tk.Toplevel):
     def __init__(self, section):
@@ -246,10 +254,10 @@ class ResultsWindow(tk.Toplevel):
         # height = self.canvas.winfo_height() + 20
 
         # Capturar la imagen del canvas utilizando ImageGrab
-        image = ImageGrab.grab((x, y, x + width, y + height))
-        print('x1: ', x, y, 'x2', x + width, y + height)
-        image.save('canvas_image.png')
-        image.show()
+        # image = ImageGrab.grab((x, y, x + width, y + height))
+        # print('x1: ', x, y, 'x2', x + width, y + height)
+        # image.save('canvas_image.png')
+        # image.show()
 
 
 
