@@ -1,9 +1,27 @@
 import turtle
+from svg_turtle import SvgTurtle
 import tkinter as tk
 from math import sqrt, atan, degrees, sin, cos, radians
+import cairosvg
 
 
-def draw_Trapezoid_channel(yn, b, z, turtle_screen):
+
+
+def get_img_from_draw(channel: SvgTurtle):
+
+    channel.save_as('channel.svg')
+    # Ruta del archivo SVG de entrada
+    input_file = 'channel.svg'
+
+    # Ruta del archivo PNG de salida
+    output_file = "channel.png"
+
+    # Convertir SVG a PNG
+    cairosvg.svg2png(url=input_file, write_to=output_file, background_color="white")
+    
+
+
+def draw_Trapezoid_channel(yn, b, z):
 
     # Dibujar el canal Trapezoid
     factor = 250 / (b + (2 * (yn + 0.3) *z))
@@ -23,9 +41,8 @@ def draw_Trapezoid_channel(yn, b, z, turtle_screen):
     diagonal_length = channel_depth * sqrt(1 + side_slope**2)
     yn_diagonal_length = yn * sqrt(1 + side_slope**2)
 
-    print(channel_depth, top_width, factor)
 
-    turtle_obj = turtle.RawTurtle(turtle_screen)
+    turtle_obj = SvgTurtle(300, 300)
     turtle_obj.hideturtle()
     turtle_obj.hideturtle()
     turtle_obj.penup()
@@ -62,28 +79,25 @@ def draw_Trapezoid_channel(yn, b, z, turtle_screen):
     turtle_obj.forward(base_width/2)
     turtle_obj.end_fill()
 
-    turtle_screen.update()
     return turtle_obj
 
 # Llamar a la función para dibujar el canal Trapezoid
 # draw_Trapezoid_channel(z=1.5, b=2, yn=0.542, trutle_screen=turtle_screen)
 
-def draw_Rectangle(yn, b, turtle_screen):
+def draw_Rectangle(yn, b):
 
     # Dibujar el canal Trapezoid
     factor = 170 / b 
-    print(factor)
     base_width = b * factor
     if (yn + 0.3) * factor > 150:
         factor = 150 / (yn + 0.3)
     elif (yn + 0.3) * factor < 40:
         factor = 40 / (yn + 0.3)
     height = (yn + 0.3) * factor
-    print(height)
     yn = yn * factor
 
 
-    turtle_obj = turtle.RawTurtle(turtle_screen)
+    turtle_obj = SvgTurtle(300, 300)
     turtle_obj.hideturtle()
     turtle_obj.penup()
     turtle_obj.goto(0, -50)
@@ -115,14 +129,13 @@ def draw_Rectangle(yn, b, turtle_screen):
     turtle_obj.left(90)
     turtle_obj.forward(base_width/2)
     turtle_obj.end_fill()
+    return turtle_obj
 
-    turtle_screen.update()
 
-def draw_triangle(z, yn, turtle_screen):
+def draw_triangle(z, yn):
     # Dibujar el canal Triangle
 
     factor = 180 / (2 * yn * z)
-    print(factor)
     if (yn + 0.2) * factor > 150:
         factor = 170 / (yn + 0.3)
     elif (yn + 0.3) * factor < 100:
@@ -138,7 +151,7 @@ def draw_triangle(z, yn, turtle_screen):
     diagonal_length = channel_depth * sqrt(1 + side_slope**2)
     yn_diagonal_length = yn * sqrt(1 + side_slope**2)
 
-    turtle_obj = turtle.RawTurtle(turtle_screen)
+    turtle_obj = SvgTurtle(300, 300)
     turtle_obj.hideturtle()
     turtle_obj.hideturtle()
     turtle_obj.penup()
@@ -164,17 +177,17 @@ def draw_triangle(z, yn, turtle_screen):
     turtle_obj.left(180 - angle)
     turtle_obj.forward(yn_diagonal_length)
     turtle_obj.end_fill()
-
-    turtle_screen.update()
-
+    return turtle_obj
 
 
 
-def draw_circle(diameter, angle, turtle_screen):
+
+
+def draw_circle(diameter, angle):
 
     diameter = 180
     # Configuración inicial de Turtle
-    turtle_obj = turtle.RawTurtle(turtle_screen)
+    turtle_obj = SvgTurtle(300, 300)
     turtle_obj.speed(100)
     turtle_obj.hideturtle() 
     turtle_obj.penup()
@@ -195,7 +208,7 @@ def draw_circle(diameter, angle, turtle_screen):
     # Finalizar el dibujo
     turtle_obj.pendown()
 
-    turtle_screen.update()
+    return turtle_obj
 
 
 
