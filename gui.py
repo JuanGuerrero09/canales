@@ -148,7 +148,7 @@ class App(tk.Tk):
         super().__init__()
 
         self.title("Hydrosolve")
-        self.geometry("650x550")
+        self.geometry("650x300")
         self.grid_columnconfigure((0, 1), weight=1)
 
         self.title_label = tk.Label(self, text='Hydrosolve', justify='center', height=2, font=('Helvetica 16 bold'))
@@ -178,15 +178,13 @@ class App(tk.Tk):
         self.results_frame.grid(row=5, columnspan=2)
 
         self.canvas = Canvas(self.results_frame)
-        self.canvas.grid(row=0, column=0, padx=20, pady=10)
+        self.canvas.grid(row=0, column=0, padx=(80, 0))
         self.canvas.create_text(101, -93, text="z", fill="black", font=('Helvetica 14 bold'))
         self.canvas.create_text(116, -110, text="1", fill="black", font=('Helvetica 14 bold'))
         self.canvas.create_polygon(110, -100, 110, -120, 90, -100)
 
         self.results_data = tk.Frame(self.results_frame)
         self.results_data.grid(row=0, column=1, sticky='w')
-        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16))
-        self.results_title.grid(row=0, column=0, sticky='w')
         self.results = tk.Label(self.results_data, text='', width=25, justify='left')
         self.results.grid(row=1, column=0, sticky='w')
 
@@ -217,15 +215,19 @@ class App(tk.Tk):
         D_input = float(geometric_params['D']) if not geometric_params['D'].isalpha()  else None
         self.calculated_section = utils.calculate_section(section, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
         self.canvas.draw_channel(self.calculated_section.__dict__)
+        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16), anchor="w")
+        self.results_title.grid(row=0, column=0, sticky='n')
         self.results.config(text = utils.formater_str(self.calculated_section.__dict__, ['n', 'So', 'Q', 'y', 'z', 'D', 'b']), font=("Arial", 12), anchor="w")
-        self.more_results_button = tk.Button(self.results_data, text="More info", command=self.more_info_callback)
-        self.more_results_button.grid(row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
+        self.more_results_button = tk.Button(self, text="More info", command=self.more_info_callback)
+        self.more_results_button.grid(row=6, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
 
-        
+        self.geometry('650x630')
+
+
 class ResultsWindow(tk.Toplevel):
     def __init__(self, section):
         super().__init__() 
-        self.geometry('600x700')
+        self.geometry('600x500')
         self.section = section
         
         # self.first_results = ttk.Frame(self)
@@ -234,12 +236,15 @@ class ResultsWindow(tk.Toplevel):
         self.canvas = Canvas(self)
         self.canvas.draw_channel(section)
         self.canvas.grid(row=0, column=0)
-        self.result = tk.Label(self, text=utils.formater_str(section), anchor="w" )
-        self.result.config(font=("Arial", 12))
+        self.result = tk.Label(self, text=utils.formater_str(section, ['channel_type','n', 'So', 'Q', 'z', 'D', 'b']), font=("Arial", 12), anchor="w", justify='left')
         self.result.grid(row=0, column=1)
+        self.result2 = tk.Label(self, text=utils.formater_str(section, ['y', 'a', 'rh', 'dh', 'tw', 'p']), font=("Arial", 12), anchor="w", justify='left')
+        self.result2.grid(row=1, column=0)
+        self.result3 = tk.Label(self, text=utils.formater_str(section, [ 'f', 'v', 'flow_status',  'zc', 'yn', 'Sc']), font=("Arial", 12), anchor="w", justify='left')
+        self.result3.grid(row=1, column=1)
 
         self.print_results_button = ttk.Button(self, text='Show in Excel', command=self.open_excel)
-        self.print_results_button.grid(row=1, column=1)
+        self.print_results_button.grid(row=2, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
 
     def open_excel(self):
         print('hi')

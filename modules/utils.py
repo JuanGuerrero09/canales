@@ -19,8 +19,8 @@ definitions = {
             'flow_status': 'Flow Status',
             'channel_type': 'Section type of Channel',
             'zc': 'Section Factor',
-            'yc': 'WIP',
-            'vc': 'WIP',
+            'yc': 'Critical Depth',
+            'Sc': 'Critical Slope',
 }
 
 def calculate_section(section_input, n_input, So_input, Q_input=None, b_input=None, z_input=None, D_input= None, y_input = Symbol('y')):

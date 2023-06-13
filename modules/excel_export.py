@@ -3,7 +3,8 @@ from utils import definitions, trim_decimals
 from PIL import Image
 import os
 
-
+data = {'n': 0.013, 'So': 0.0075, 'Q': 3.5, 'y': 0.531804201497051, 'a': 1.06360840299410, 'p': 3.06360840299410, 'rh': 0.347175050817404, 'tw': 2, 'dh': 0.531804201497051, 'zc': 0.775635435373953, 'v': 3.29068479540718, 'f': 
+1.44070777128165, 'flow_status': 'Supercritical', 'yn': 0.678373743218602, 'ac': 1.35674748643720, 'rc': 0.404185150035588, 'pc': 3.35674748643720, 'twc': 2, 'yc': 0.678373743218602, 'vc': None, 'sc': 0.00376343371245344, 'channel_type': 'Rectangular', 'b': 2} 
 
 def generate_report(data):
 
@@ -51,8 +52,8 @@ def generate_report(data):
     row = 1
     col = 1
 
-    worksheet.set_column('B:B', 10, cell_format=cells_format)
-    worksheet.set_column('C:C', 15, cell_format=cells_format)
+    worksheet.set_column('B:B', 20, cell_format=cells_format)
+    worksheet.set_column('C:C', 20, cell_format=cells_format)
     worksheet.set_column('D:D', 25, cell_format=cells_format)
     worksheet.merge_range('B1:D1', 'Channel Report',title_format)
     worksheet.set_row(0, 40)
@@ -67,7 +68,7 @@ def generate_report(data):
 
     parameters = ['n', 'So', 'Q', 'b', 'y', 'z', 'D']
 
-    results = ['a', 'p','rh','tw','dh','zc', 'v', 'yc', 'vc', 'channel_type', 'flow_status', 'f', ]
+    results = ['a', 'p','rh','tw','dh','zc', 'v', 'yc', 'Sc', 'channel_type', 'flow_status', 'f', ]
 
     # definitions = frozenset(definitions.items())
 
@@ -100,8 +101,9 @@ def generate_report(data):
     image = Image.open('channel.png')
     image.resize((50, 50))
     image.save('channel.png')
-    worksheet.set_row(row, 150, cell_format=cells_format)
-    worksheet.insert_image(row, col, 'channel.png')
+    worksheet.set_row(row, 150)
+    worksheet.merge_range(row, col, row, col + 2, 'Results', cells_format)
+    worksheet.insert_image(row, col, 'channel.png', {'x_offset': 60, 'y_offset': 15})
     row+=1
 
     worksheet.print_area(0,0, row, col + 1)
@@ -109,4 +111,3 @@ def generate_report(data):
     workbook.close()
 
     os.system("start EXCEL.EXE ChannelReport.xlsx")
-

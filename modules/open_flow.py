@@ -58,7 +58,7 @@ class Channel:
         self.twc = None
         self.yc = None
         self.vc = None
-        self.sc = None
+        self.Sc = None
         
     
     def calc_properties(self):
@@ -113,7 +113,7 @@ class Channel:
         self.yn = nsolve(froude_critical, self.yn, 1)
         self.yc = self.yn
         self.calc_properties()
-        self.sc = ((self.Q**2 * self.n**2) / (self.ac**2 * self.rc**(4/3)))
+        self.Sc = ((self.Q**2 * self.n**2) / (self.ac**2 * self.rc**(4/3)))
 
 
 class RectangularChannel(Channel):
@@ -126,6 +126,8 @@ class RectangularChannel(Channel):
             self.calc_yn()
         if(self.Q is None):
             self.calc_flow()
+        self.get_critical_parameters()
+        
 
     def calc_properties(self):
         self.a = self.b * self.y
@@ -159,6 +161,8 @@ class TrapezoidalChannel(Channel):
             self.calc_yn()
         if(self.Q is None):
             self.calc_flow()
+        self.get_critical_parameters()
+        
 
     def calc_properties(self):
         self.a = (self.b + (self.y*self.z)) * self.y
@@ -199,6 +203,8 @@ class TriangularChannel(Channel):
             self.calc_yn()
         if(self.Q is None):
             self.calc_flow()
+        self.get_critical_parameters()
+        
 
     def calc_properties(self):
         self.a = self.z * self.y**2
@@ -238,6 +244,8 @@ class CircularChannel(Channel):
             self.calc_yn()
         if(self.Q is None):
             self.calc_flow()
+        self.get_critical_parameters()
+        
 
 
     def calc_properties(self):
