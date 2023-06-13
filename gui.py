@@ -3,13 +3,15 @@ import tkinter as tk
 import turtle
 from tkinter import ttk
 from math import sqrt, atan, degrees, radians
-from ilustraciones import draw_Trapezoid_channel, draw_circle, draw_triangle, draw_Rectangle
+from draws import draw_Trapezoid_channel, draw_circle, draw_triangle, draw_Rectangle, get_img_from_draw
 from custom_components import CustomEntry
-from PIL import ImageGrab
+from PIL import Image, ImageTk
+
 import sys
 sys.path.append('modules')
 
 import utils
+from excel_export import generate_report
 
 # Ahora puedes usar las funciones y variables definidas en modulo.py
 
@@ -107,35 +109,37 @@ class Selecciones(tk.Frame):
 
 class Canvas(tk.Canvas):
     def __init__(self, master):
-        super().__init__(master, width=250, height=250)
-        self.create_turtle()
+        super().__init__(master, width=300, height=300)
 
-    def create_turtle(self):
-        turtle_screen = self.get_turtle_screen()
-        turtle_canvas = turtle_screen.getcanvas()
+    def show_image(self):
+        img = Image.open('channel.png')
+        img = img.resize((215, 215))
+        self.pimg = ImageTk.PhotoImage(img)
+        self.create_image(0, 0, anchor='nw', image=self.pimg)
 
-    def get_turtle_screen(self):
-        turtle_screen = turtle.TurtleScreen(self)
-        turtle_screen.bgcolor("white")
-        turtle_screen.delay(0)
-        return turtle_screen
+
 
     def draw_channel(self, section):
         channel = section.get('channel_type')
-        yn = section.get('y')
+        yn = float(section.get('y'))
         b = section.get('b')
         z = section.get('z')
         diameter = section.get('D')
         angle = degrees(section.get('theta')) if section.get('theta') != None else None
         match channel:
             case 'Trapezoidal':
-                draw_Trapezoid_channel(yn=yn, z=z, b=b, turtle_screen=self.get_turtle_screen())
+                channel = draw_Trapezoid_channel(yn=yn, z=z, b=b)
             case 'Circular':
-                draw_circle(diameter=diameter, angle=angle, turtle_screen=self.get_turtle_screen())
+                channel = draw_circle(diameter=diameter, angle=angle)
             case 'Rectangular':
-                draw_Rectangle(yn=yn, b=b, turtle_screen=self.get_turtle_screen())
+                channel = draw_Rectangle(yn=yn, b=b)
             case 'Triangular':
-                draw_triangle(yn=yn, z=z,turtle_screen=self.get_turtle_screen())
+                channel = draw_triangle(yn=yn, z=z)
+        channel.save_as('channel.svg')
+        #converts svg to png
+        get_img_from_draw(channel)
+        # #a file called channel.png is created
+        self.show_image()
 
         
 
@@ -174,20 +178,18 @@ class App(tk.Tk):
         self.results_frame.grid(row=5, columnspan=2)
 
         self.canvas = Canvas(self.results_frame)
-        self.canvas.grid(row=0, column=0, padx=2)
+        self.canvas.grid(row=0, column=0, padx=20, pady=10)
         self.canvas.create_text(101, -93, text="z", fill="black", font=('Helvetica 14 bold'))
         self.canvas.create_text(116, -110, text="1", fill="black", font=('Helvetica 14 bold'))
         self.canvas.create_polygon(110, -100, 110, -120, 90, -100)
 
         self.results_data = tk.Frame(self.results_frame)
-        self.results_data.grid(row=0, column=1, sticky='w',  padx=10)
-        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left')
-        self.results_title.grid(row=0, column=0, sticky='w',  padx=10)
+        self.results_data.grid(row=0, column=1, sticky='w')
+        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16))
+        self.results_title.grid(row=0, column=0, sticky='w')
         self.results = tk.Label(self.results_data, text='', width=25, justify='left')
-        self.results.grid(row=1, column=0, sticky='w',  padx=10)
+        self.results.grid(row=1, column=0, sticky='w')
 
-        self.more_results_button = tk.Button(self.results_data, text="More info", command=self.more_info_callback)
-        self.more_results_button.grid(row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
     
     def show_enabled(self, event):
         self.section = self.selecciones.get()[0]
@@ -199,7 +201,7 @@ class App(tk.Tk):
 
 
     def more_info_callback(self):
-        result_window = ResultsWindow(self.calculated_section)
+        result_window = ResultsWindow(self.calculated_section.__dict__)
 
 
     def button_callback(self):
@@ -216,48 +218,33 @@ class App(tk.Tk):
         self.calculated_section = utils.calculate_section(section, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
         self.canvas.draw_channel(self.calculated_section.__dict__)
         self.results.config(text = utils.formater_str(self.calculated_section.__dict__, ['n', 'So', 'Q', 'y', 'z', 'D', 'b']), font=("Arial", 12), anchor="w")
-        ####
-        # result_window = ResultsWindow(self.calculated_section)
+        self.more_results_button = tk.Button(self.results_data, text="More info", command=self.more_info_callback)
+        self.more_results_button.grid(row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
 
-        # x = self.canvas.winfo_rootx() + 52
-        # y = self.canvas.winfo_rooty() + 110
-        # width = self.canvas.winfo_width() + 50
-        # height = self.canvas.winfo_height() + 20
-
-        # Capturar la imagen del canvas utilizando ImageGrab
-        # image = ImageGrab.grab((x, y, x + width, y + height))
-        # image.save('canvas_image.png')
-        # image.show()
-
-        ####
         
 class ResultsWindow(tk.Toplevel):
     def __init__(self, section):
-        super().__init__()  # Corrected super() call
-        self.geometry('600x600')
-        self.result = tk.Label(self, text=section)
-        self.result.grid(row=0, column=0)
+        super().__init__() 
+        self.geometry('600x700')
+        self.section = section
+        
+        # self.first_results = ttk.Frame(self)
+        # self.first_results.grid(row=0, column=0)
+
         self.canvas = Canvas(self)
-        self.canvas.draw_channel(section.__dict__)
-        self.canvas.grid(row=1, column=0)
-        self.get_picture()
+        self.canvas.draw_channel(section)
+        self.canvas.grid(row=0, column=0)
+        self.result = tk.Label(self, text=utils.formater_str(section), anchor="w" )
+        self.result.config(font=("Arial", 12))
+        self.result.grid(row=0, column=1)
 
-    def get_picture(self):
-        self.canvas.update_idletasks()
-        x = self.canvas.winfo_rootx() 
-        y = self.canvas.winfo_rooty() 
-        width = self.canvas.winfo_width() 
-        height = self.canvas.winfo_height() 
-        # x = self.canvas.winfo_rootx() + 52
-        # y = self.canvas.winfo_rooty() + 110
-        # width = self.canvas.winfo_width() + 50
-        # height = self.canvas.winfo_height() + 20
+        self.print_results_button = ttk.Button(self, text='Show in Excel', command=self.open_excel)
+        self.print_results_button.grid(row=1, column=1)
 
-        # Capturar la imagen del canvas utilizando ImageGrab
-        # image = ImageGrab.grab((x, y, x + width, y + height))
-        # print('x1: ', x, y, 'x2', x + width, y + height)
-        # image.save('canvas_image.png')
-        # image.show()
+    def open_excel(self):
+        print('hi')
+        generate_report(self.section)
+
 
 
 

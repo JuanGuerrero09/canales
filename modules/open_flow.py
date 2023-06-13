@@ -53,15 +53,20 @@ class Channel:
         self.flow_status = None
         self.yn = Symbol('yn')
         self.ac = None
+        self.rc = None
+        self.pc = None
         self.twc = None
         self.yc = None
         self.vc = None
+        self.sc = None
         
     
     def calc_properties(self):
         if self.Q is not None and type(self.y) is not Symbol:
             self.v = self.Q / self.a
             self.f = self.v / sqrt(G * self.dh)
+            self.rc = self.ac / self.pc if (self.ac and self.pc) != None else None
+            # self.rc = self.Q / self.ac if (self.ac) != None else None
             froude_value = float(str(self.f))
             if froude_value > 1.0:
                 self.flow_status = 'Supercritical'
@@ -104,10 +109,11 @@ class Channel:
         plt.show()
 
     def get_critical_parameters(self):
-        froude_critical = sqrt((self.Q**2 * self.twc) / (G * self.ac))
-        self.yc = nsolve(froude_critical - 1, self.yn, 1)
-        print(self.__dict__)
-        print(froude_critical, self.yc)
+        froude_critical = (self.Q**2 / G) - (self.ac**3 / self.twc)
+        self.yn = nsolve(froude_critical, self.yn, 1)
+        self.yc = self.yn
+        self.calc_properties()
+        self.sc = ((self.Q**2 * self.n**2) / (self.ac**2 * self.rc**(4/3)))
 
 
 class RectangularChannel(Channel):
@@ -126,9 +132,11 @@ class RectangularChannel(Channel):
         self.p = self.b + (self.y * 2)
         self.rh = self.a / self.p
         self.tw = self.b 
+        self.twc = self.b 
         self.dh = self.y
         self.zc = self.b * (self.y**1.5)
         self.ac = self.b * self.yn
+        self.pc = self.b + (self.yn * 2)
         super().calc_properties()
 
     def calc_yn(self):
@@ -161,6 +169,7 @@ class TrapezoidalChannel(Channel):
         self.zc = ((self.b + (self.z * self.y))* self.y)**1.5 / (self.b + (2 * self.y * self.b))**0.5
         self.ac = (self.b + (self.yn*self.z)) * self.yn
         self.twc = self.b  + (2 * self.yn * self.z)
+        self.pc = self.b + (2 * self.yn * (1 + self.z**2)**(1/2))
         super().calc_properties()
 
     def calc_yn(self):
@@ -183,7 +192,7 @@ class TrapezoidalChannel(Channel):
 class TriangularChannel(Channel):
     def __init__(self, n, So, z, Q = None, y = Symbol('y')):
         super().__init__(n, So, Q)
-        self.channel_type = 'Triangle'
+        self.channel_type = 'Triangular'
         self.z = z
         self.y = y
         if(type(self.y) is Symbol):
@@ -198,6 +207,9 @@ class TriangularChannel(Channel):
         self.rh = self.a / self.p
         self.tw = 2 * self.z * self.y
         self.dh = 0.5 * self.y
+        self.ac = self.z * self.yn**2
+        self.twc = 2 * self.z * self.yn
+        self.pc = (self.yn * 2) * (1 + self.z**2)**0.5
         self.zc = ((2**0.5)/2) * self.z * self.y**2.5
         super().calc_properties()
 
@@ -219,11 +231,9 @@ class TriangularChannel(Channel):
 class CircularChannel(Channel):
     def __init__(self, n, So, D, Q = None, y = Symbol('y')):
         super().__init__(n, So, Q)
-        self.channel_type = 'Circle'
+        self.channel_type = 'Circular'
         self.D = D
         self.y = y
-        self.theta = acos((1 - ( 2 * (self.y / self.D)))) * 2
-        self.theta_n = acos((1 - ( 2 * (self.yn / self.D)))) * 2
         if(type(self.y) is Symbol):
             self.calc_yn()
         if(self.Q is None):
@@ -231,15 +241,18 @@ class CircularChannel(Channel):
 
 
     def calc_properties(self):
+        self.theta_n = acos((1 - ( 2 * (self.yn / self.D)))) * 2
         self.theta = acos((1 - ( 2 * (self.y / self.D)))) * 2
         self.a = ((self.theta - sin(self.theta)) * self.D**2) / 8
-        self.ac = ((self.theta_n - sin(self.theta)) * self.D**2) / 8
+        self.ac = ((self.theta_n - sin(self.theta_n)) * self.D**2) / 8
         self.a = ((self.theta - sin(self.theta)) * self.D**2) / 8
         self.p = ( self.D * self.theta) / 2
         self.rh = self.a / self.p
         self.tw = sin(self.theta / 2) * self.D
-        # self.dh = self.y
-        # self.zc = self.D * (self.y**1.5)
+        self.twc = sin(self.theta_n / 2) * self.D
+        self.pc = ( self.D * self.theta_n) / 2
+        self.dh = self.a / self.tw
+        self.zc = self.D * (self.y**1.5)
         super().calc_properties()
         
 
