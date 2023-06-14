@@ -247,7 +247,6 @@ class ResultsWindow(tk.Toplevel):
         self.print_results_button.grid(row=2, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
 
     def open_excel(self):
-        print('hi')
         generate_report(self.section)
 
 

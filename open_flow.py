@@ -80,7 +80,6 @@ class Channel:
     def calc_flow(self):
         #Manning
         self.calc_properties()
-        print(self.rh)
         self.Q = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
         self.calc_properties()
         return self.Q

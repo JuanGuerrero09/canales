@@ -60,6 +60,3 @@ def formater_str(results, selection = None):
             formated_value = trim_decimals(result_value) 
             formated_results += f' = {formated_value}\n'
     return formated_results
-
-section = calculate_section('Triangle', 1, 1, 1, 1, 1)
-print(section.__dict__)

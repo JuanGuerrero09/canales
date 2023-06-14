@@ -3,8 +3,6 @@ from utils import definitions, trim_decimals
 from PIL import Image
 import os
 
-data = {'n': 0.013, 'So': 0.0075, 'Q': 3.5, 'y': 0.531804201497051, 'a': 1.06360840299410, 'p': 3.06360840299410, 'rh': 0.347175050817404, 'tw': 2, 'dh': 0.531804201497051, 'zc': 0.775635435373953, 'v': 3.29068479540718, 'f': 
-1.44070777128165, 'flow_status': 'Supercritical', 'yn': 0.678373743218602, 'ac': 1.35674748643720, 'rc': 0.404185150035588, 'pc': 3.35674748643720, 'twc': 2, 'yc': 0.678373743218602, 'vc': None, 'sc': 0.00376343371245344, 'channel_type': 'Rectangular', 'b': 2} 
 
 def generate_report(data):
 
