@@ -4,9 +4,11 @@ from PIL import Image
 import os
 
 
-def generate_report(data):
+def generate_report(data, flow_type:str):
 
-    workbook = xlsxwriter.Workbook('ChannelReport.xlsx')
+    excel_name = 'ChannelReport' if flow_type == 'OpenFlow' else 'PipeReport'
+
+    workbook = xlsxwriter.Workbook(f'{excel_name}.xlsx')
     worksheet = workbook.add_worksheet('Data')
 
     worksheet.set_paper(9)
@@ -64,9 +66,12 @@ def generate_report(data):
 
     row += 1
 
-    parameters = ['n', 'So', 'Q', 'b', 'y', 'z', 'D']
-
-    results = ['a', 'p','rh','tw','dh','zc', 'v', 'yc', 'Sc', 'channel_type', 'flow_status', 'f', ]
+    if flow_type == 'OpenFlow':
+        parameters = ['n', 'So', 'Q', 'b', 'y', 'z', 'D']
+        results = ['a', 'p','rh','tw','dh','zc', 'v', 'yc', 'Sc', 'channel_type', 'flow_status', 'f', ]
+    elif flow_type == 'PipeFlow':
+        parameters = ['method','Q', 'ID', 'L', 'e', 'C', 'eD']
+        results = ['Re', 'fr', 'flow_type', 'h', 'hf']
 
     # definitions = frozenset(definitions.items())
 
@@ -96,16 +101,17 @@ def generate_report(data):
             worksheet.write(row, col + 2, definitions[key], ital)
             row += 1 
 
-    image = Image.open('channel.png')
-    image.resize((50, 50))
-    image.save('channel.png')
-    worksheet.set_row(row, 150)
-    worksheet.merge_range(row, col, row, col + 2, 'Results', cells_format)
-    worksheet.insert_image(row, col, 'channel.png', {'x_offset': 60, 'y_offset': 15})
-    row+=1
+    if flow_type == 'OpenFlow':
+        image = Image.open('channel.png')
+        image.resize((50, 50))
+        image.save('channel.png')
+        worksheet.set_row(row, 150)
+        worksheet.merge_range(row, col, row, col + 2, 'Results', cells_format)
+        worksheet.insert_image(row, col, 'channel.png', {'x_offset': 60, 'y_offset': 15})
+        row+=1
 
     worksheet.print_area(0,0, row, col + 1)
 
     workbook.close()
 
-    os.system("start EXCEL.EXE ChannelReport.xlsx")
+    os.system(f"start EXCEL.EXE {excel_name}.xlsx")

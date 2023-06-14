@@ -8,6 +8,8 @@ share/
 *.py[cod]
 *$py.class
 *.xlsx
+*.png
+*.svg
 
 # C extensions
 *.so

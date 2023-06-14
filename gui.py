@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from custom_components import CustomEntry
 from gui_open_flow import OpenFlowGui
+from gui_pipe_flow import PipeFlowGui
 
 import sys
 sys.path.append('modules')
@@ -32,7 +33,7 @@ class App(tk.Tk):
         self.flow_type.grid(row=1, column=1)
 
         self.open_flow = OpenFlowGui(self)
-        self.pipe_flow = PipeFlow(self)
+        self.pipe_flow = PipeFlowGui(self)
         
         self.select_flow(event=None)
 
@@ -45,13 +46,9 @@ class App(tk.Tk):
         elif selected_flow == 'Pipe Flow':
             self.pipe_flow.grid(row=2, columnspan=2)
             self.open_flow.grid_forget()
+        self.geometry("680x300")
 
 
-class PipeFlow(tk.Frame):
-    def __init__(self, master):
-        super().__init__(master)
-        self.results_title = tk.Label(self, text='PIPE gui', width=25, justify='left', font=("Arial", 16), anchor="w")
-        self.results_title.grid(row=0, column=0, sticky='n')
 
 
 

@@ -56,7 +56,6 @@ def calculate_pipe(calc_type, L_input, ID_input, Q_input, e_input = None, C_inpu
         pipe = Pipe(Q_input, ID_input, e_input, L_input)
     elif calc_type == 'Hazen-Williams':
         pipe = Pipe(Q_input, ID_input, L = L_input, C= C_input, method= calc_type)
-    print(pipe.__dict__)
     return pipe
 
 def trim_decimals(value):

@@ -73,30 +73,12 @@ class PipeFlowGui(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
 
-        self.title("Hydrosolve")
-        self.geometry("650x300")
         self.grid_columnconfigure((0, 1), weight=1)
-
-        self.title_label = tk.Label(self, text='Hydrosolve', justify='center', height=2, font=('Helvetica 16 bold'))
-        self.title_label.grid(row=0, columnspan=2)
-
-
-        self.flow_type_label = tk.Label(self, text='Flow type: ', justify='left')
-        self.flow_type_label.grid(row=1)
-        self.flow_type = ttk.Combobox(self, values=['Open Channel Flow', 'Pipe Flow'], font="Arial 12")
-        self.flow_type.current(1)
-        self.flow_type.grid(row=1, column=1)
-
-        # self.selecciones = Selecciones(self)
-        # self.selecciones.grid(row=1, columnspan=2)
-        # self.selecciones.tipo_de_canal.bind("<<ComboboxSelected>>", self.show_enabled)
-        # self.selecciones.calculo_var.trace('w', self.select_calc)
 
 
         self.parameters = tk.Frame(self)
         self.parameters.grid(row=2, columnspan=2)
-        # self.section = 'Trapezoid'
-        # self.calc = 'yn'
+
 
         self.pipe_parameters = Entries(self.parameters, values=['Q', 'ID', 'L'])
         self.pipe_parameters.grid(row=0, column=0)
@@ -129,15 +111,16 @@ class PipeFlowGui(tk.Frame):
 
 
         self.results_data = tk.Frame(self.results_frame)
-        self.results_data.grid(row=0, column=1, sticky='w')
+        self.results_data.grid(row=0, column=1, padx=20)
         self.results = tk.Label(self.results_data, text='', width=35, justify='left')
         self.results.grid(row=1, column=0, sticky='w')
+        self.results2 = tk.Label(self.results_data, text='', width=35, justify='left')
+        self.results2.grid(row=1, column=1, sticky='w')
 
     
     def show_enabled(self, event):
         self.section = self.method_type.get()
         self.method_parameters.show_entries(self.section)
-        print(self.section)
 
     def select_calc(self, *args):
         self.calc = self.selecciones.calculo_var.get()
@@ -147,19 +130,20 @@ class PipeFlowGui(tk.Frame):
     def pipe_button_callback(self):
         pipe_params = self.pipe_parameters.get()
         method_params = self.method_parameters.get()
-        print(method_params, pipe_params, self.section)
         L_input = float(pipe_params['L'])
         ID_input = float(pipe_params['ID'])
         Q_input = float(pipe_params['Q']) 
         e_input = float(method_params['e']) if self.section != 'Hazen-Williams' and 'e' in  method_params else None
         C_input = float(method_params['C']) if self.section != 'Darcy-Weisbach' and 'C' in  method_params else None
         self.calculated_pipe = utils.calculate_pipe(self.section, L_input,  ID_input, Q_input,  e_input, C_input )
-        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16), anchor="w")
-        self.results_title.grid(row=0, column=0, sticky='n')
-        self.results.config(text = utils.formater_str(self.calculated_pipe.__dict__), font=("Arial", 12), anchor="w")
-        # self.more_results_button = tk.Button(self, text="More info", command=self.more_info_callback)
-        # self.more_results_button.grid(row=6, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
+        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16))
+        self.results_title.grid(row=0, columnspan=2, sticky='n')
+        self.results.config(text = utils.formater_str(self.calculated_pipe.__dict__, ['method','Q', 'ID', 'L', 'e', 'C', 'eD']), font=("Arial", 12), anchor="w")
+        self.results2.config(text = utils.formater_str(self.calculated_pipe.__dict__, ['Re', 'fr', 'flow_type', 'h', 'hf']), font=("Arial", 12), anchor="w")
+        self.more_results_button = tk.Button(self, text="Export to Excel", command=self.export_excel)
+        self.more_results_button.grid(row=6, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
+        self.master.geometry('680x470')
 
-        self.geometry('650x570')
-
+    def export_excel(self):
+        generate_report(self.calculated_pipe.__dict__, 'PipeFlow')
 

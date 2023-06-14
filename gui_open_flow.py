@@ -202,7 +202,6 @@ class OpenFlowGui(tk.Frame):
         hydraulic_params = self.hydraulic_parameters.get()
         geometric_params = self.geometric_parameters.get()
         section, calculo = self.selecciones.get()
-        print(hydraulic_params, calculo)
         n_input = float(hydraulic_params['n'])
         So_input = float(hydraulic_params['So'])
         Q_input = float(hydraulic_params['Q']) if calculo != "Q" and 'Q' in  hydraulic_params else None
@@ -244,7 +243,7 @@ class ResultsWindow(tk.Toplevel):
         self.print_results_button.grid(row=2, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
 
     def open_excel(self):
-        generate_report(self.section)
+        generate_report(self.section, 'OpenFlow')
 
 
 
