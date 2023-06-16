@@ -1,7 +1,8 @@
 # Imports
-from sympy import Symbol, nsolve, sqrt, acos, sin, lambdify
+from sympy import Symbol, nsolve, sqrt, acos, sin, lambdify, re
 import numpy as np 
 from matplotlib import pyplot as plt 
+import sys
 
 
 # Variables definition
@@ -26,7 +27,6 @@ https://www.eng.auburn.edu/~xzf0001/Handbook/Channels.html
 'flow_status': 'Flow Status',
 'zc': 'Section Factor',
 'yc': 'WIP',
-'vc': 'WIP',
 
 '''
 
@@ -57,7 +57,6 @@ class Channel:
         self.pc = None
         self.twc = None
         self.yc = None
-        self.vc = None
         self.Sc = None
         
     
@@ -66,7 +65,6 @@ class Channel:
             self.v = self.Q / self.a
             self.f = self.v / sqrt(G * self.dh)
             self.rc = self.ac / self.pc if (self.ac and self.pc) != None else None
-            # self.rc = self.Q / self.ac if (self.ac) != None else None
             froude_value = float(str(self.f))
             if froude_value > 1.0:
                 self.flow_status = 'Supercritical'
@@ -86,10 +84,13 @@ class Channel:
 
     def calc_yn(self):
         if(type(self.y) is Symbol):
-            self.calc_properties()
-            sol = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
-            self.y = nsolve(sol - self.Q, self.y, 1)
-            self.calc_properties()
+            try:
+                self.calc_properties()
+                sol = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
+                self.y = re(nsolve(sol - self.Q, self.y, 1))
+                self.calc_properties()
+            except ValueError:
+                return 'Incorrect value selected'
         return self.y
 
     def get_parameters(self):
@@ -108,8 +109,9 @@ class Channel:
         plt.show()
 
     def get_critical_parameters(self):
-        froude_critical = (self.Q**2 / G) - (self.ac**3 / self.twc)
-        self.yn = nsolve(froude_critical, self.yn, 1)
+        froude_critical = (self.Q**2 * self.twc) - (self.ac**3 * G)
+        x0 = 1 if (hasattr(self, 'D') and self.D > 1.1) else 0.4
+        self.yn = re(nsolve(froude_critical, self.yn, x0))
         self.yc = self.yn
         self.calc_properties()
         self.Sc = ((self.Q**2 * self.n**2) / (self.ac**2 * self.rc**(4/3)))
@@ -120,7 +122,7 @@ class RectangularChannel(Channel):
         super().__init__(n, So, Q)
         self.channel_type = 'Rectangular'
         self.b = b
-        self.y = y
+        self.y = y if y != None else Symbol('y')
         if(type(self.y) is Symbol):
             self.calc_yn()
         if(self.Q is None):
@@ -140,13 +142,6 @@ class RectangularChannel(Channel):
         self.pc = self.b + (self.yn * 2)
         super().calc_properties()
 
-    def calc_yn(self):
-        if(type(self.y) is Symbol):
-            self.calc_properties()
-            sol = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
-            self.y = nsolve(sol - self.Q, self.y, 1)
-            self.calc_properties()
-        return self.y
     
     
 class TrapezoidalChannel(Channel):
@@ -155,7 +150,7 @@ class TrapezoidalChannel(Channel):
         self.channel_type = 'Trapezoidal'
         self.b = b
         self.z = z
-        self.y = y
+        self.y = y if y != None else Symbol('y')
         if(type(self.y) is Symbol):
             self.calc_yn()
         if(self.Q is None):
@@ -175,15 +170,6 @@ class TrapezoidalChannel(Channel):
         self.pc = self.b + (2 * self.yn * (1 + self.z**2)**(1/2))
         super().calc_properties()
 
-    def calc_yn(self):
-        if isinstance(self.y, Symbol):
-            self.calc_properties()
-            sol = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
-            self.y = nsolve(sol - self.Q, self.y, 1) 
-            self.calc_properties()
-        else: 
-            self.calc_properties()
-        return self.y
     
     
 
@@ -197,7 +183,7 @@ class TriangularChannel(Channel):
         super().__init__(n, So, Q)
         self.channel_type = 'Triangular'
         self.z = z
-        self.y = y
+        self.y = y if y != None else Symbol('y')
         if(type(self.y) is Symbol):
             self.calc_yn()
         if(self.Q is None):
@@ -223,22 +209,13 @@ class TriangularChannel(Channel):
         self.Q = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
         self.calc_properties()    
     
-    def calc_yn(self):
-        if isinstance(self.y, Symbol):
-            self.calc_properties()
-            sol = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
-            self.y = nsolve(sol - self.Q, self.y, 1)  # Pasar self.y como variable simbólica
-            self.calc_properties()
-        else:
-            self.calc_properties()
-        return self.y
 
 class CircularChannel(Channel):
     def __init__(self, n, So, D, Q = None, y = Symbol('y')):
         super().__init__(n, So, Q)
         self.channel_type = 'Circular'
         self.D = D
-        self.y = y
+        self.y = y if y != None else Symbol('y')
         if(type(self.y) is Symbol):
             self.calc_yn()
         if(self.Q is None):
@@ -249,8 +226,8 @@ class CircularChannel(Channel):
 
     def calc_properties(self):
         self.theta_n = acos((1 - ( 2 * (self.yn / self.D)))) * 2
-        self.theta = acos((1 - ( 2 * (self.y / self.D)))) * 2
-        self.a = ((self.theta - sin(self.theta)) * self.D**2) / 8
+        self.theta = (acos((1 - ( 2 * (self.y / self.D)))) * 2).evalf()
+        self.a = (((self.theta - sin(self.theta)) * self.D**2) / 8)
         self.ac = ((self.theta_n - sin(self.theta_n)) * self.D**2) / 8
         self.a = ((self.theta - sin(self.theta)) * self.D**2) / 8
         self.p = ( self.D * self.theta) / 2
@@ -272,21 +249,3 @@ class CircularChannel(Channel):
         self.calc_properties()
 
     
-    def calc_yn(self):
-        if isinstance(self.y, Symbol):
-            self.calc_properties()
-            sol = (self.a * self.rh**(2/3) * self.So**0.5) / self.n
-            self.y = nsolve(sol - self.Q, self.y, 1)  # Pasar self.y como variable simbólica
-            self.calc_properties()
-        else:
-            self.calc_properties()
-        return self.y
-
-# print(RectangularChannel(b=2, n=0.0013, So=0.0075, Q = 3.5).__dict__)
-# print(RectangularChannel(b=2, n=0.0013, So=0.0075, y = .1177).__dict__)
-# print(TrapezoidalChannel(b=2, n=0.013, So=0.0075, Q = 3.5, z=1.5).__dict__)
-# print(TrapezoidalChannel(b=2, n=0.013, So=0.0075, y = 0.426, z=1.5).__dict__)
-# print(CircularChannel(D=3, n=0.0013, So=0.0075, Q = 3.5).__dict__)
-# print(CircularChannel(D=3, n=0.0013, So=0.0075, y = 0.2015).__dict__)
-# print(TriangularChannel(z=1.5, n=0.0013, So=0.0075, Q = 3.5).__dict__)
-# print(TriangularChannel(z=1.5, n=0.0013, So=0.0075, y = 0.354).__dict__)

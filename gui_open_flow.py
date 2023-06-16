@@ -1,7 +1,7 @@
 from sympy import Symbol
 import tkinter as tk
 import turtle
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from math import sqrt, atan, degrees, radians
 from draws import draw_Trapezoid_channel, draw_circle, draw_triangle, draw_Rectangle, get_img_from_draw
 from custom_components import CustomEntry
@@ -199,25 +199,27 @@ class OpenFlowGui(tk.Frame):
 
 
     def button_callback(self):
-        hydraulic_params = self.hydraulic_parameters.get()
-        geometric_params = self.geometric_parameters.get()
-        section, calculo = self.selecciones.get()
-        n_input = float(hydraulic_params['n'])
-        So_input = float(hydraulic_params['So'])
-        Q_input = float(hydraulic_params['Q']) if calculo != "Q" and 'Q' in  hydraulic_params else None
-        y_input = float(hydraulic_params['y']) if calculo != "y" else Symbol('y')
-        b_input = float(geometric_params['b']) if not geometric_params['b'].isalpha()  else None
-        z_input = float(geometric_params['z']) if not geometric_params['z'].isalpha()  else None
-        D_input = float(geometric_params['D']) if not geometric_params['D'].isalpha()  else None
-        self.calculated_section = utils.calculate_section(section, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
-        self.canvas.draw_channel(self.calculated_section.__dict__)
-        self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16), anchor="w")
-        self.results_title.grid(row=0, column=0, sticky='n')
-        self.results.config(text = utils.formater_str(self.calculated_section.__dict__, ['n', 'So', 'Q', 'y', 'z', 'D', 'b']), font=("Arial", 12), anchor="w")
-        self.more_results_button = tk.Button(self, text="More info", command=self.more_info_callback)
-        self.more_results_button.grid(row=6, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
-
-        self.master.geometry('670x630')
+        try:
+            hydraulic_params = self.hydraulic_parameters.get()
+            geometric_params = self.geometric_parameters.get()
+            section, calculo = self.selecciones.get()
+            n_input = float(hydraulic_params['n'])
+            So_input = float(hydraulic_params['So'])
+            Q_input = float(hydraulic_params['Q']) if calculo != "Q" and 'Q' in  hydraulic_params else None
+            y_input = float(hydraulic_params['y']) if calculo != "y" else Symbol('y')
+            b_input = float(geometric_params['b']) if not geometric_params['b'].isalpha()  else None
+            z_input = float(geometric_params['z']) if not geometric_params['z'].isalpha()  else None
+            D_input = float(geometric_params['D']) if not geometric_params['D'].isalpha()  else None
+            self.calculated_section = utils.calculate_section(section, n_input, So_input, Q_input, b_input, z_input, D_input, y_input)
+            self.canvas.draw_channel(self.calculated_section.__dict__)
+            self.results_title = tk.Label(self.results_data, text='Results: ', width=25, justify='left', font=("Arial", 16), anchor="w")
+            self.results_title.grid(row=0, column=0, sticky='n')
+            self.results.config(text = utils.formater_str(self.calculated_section.__dict__, ['n', 'So', 'Q', 'y', 'z', 'D', 'b']), font=("Arial", 12), anchor="w")
+            self.more_results_button = tk.Button(self, text="More info", command=self.more_info_callback)
+            self.more_results_button.grid(row=6, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
+            self.master.geometry('670x630')
+        except Exception as e:
+            messagebox.showerror("Error", 'An error has ocurred, please select diferent values')
 
 
 class ResultsWindow(tk.Toplevel):
