@@ -1,5 +1,24 @@
 # Hydrosolver
 
+Hydrosolver is an intuitive and easy-to-use application that allows users to calculate flow rate and normal head in open channels, as well as to determine flow losses in pipes. This tool is ideal for hydraulic engineers, students and professionals working in the design and analysis of water conveyance systems.
+
+Key features of Hydrosolver:
+
+1. Channel Flow Calculation: users can enter channel cross-sectional dimensions, such as width, depth and slope, and quickly and accurately obtain the flow rate in the channel.
+
+2. Calculation of Normal Channel Depth: Hydrosolver allows the determination of the normal draft in open channels by entering cross-sectional parameters and the flow rate through the channel.
+
+3. Pipe Loss Calculation: Users can calculate flow losses in pipes using different methods, such as the Hazen-Williams formula or the Darcy-Weisbach formula. This helps to estimate energy losses due to friction and to optimize piping system design.
+
+4. Intuitive Interface: Hydrosolver features an intuitive and user-friendly user interface that allows users to easily enter relevant parameters, view calculation results and generate detailed reports.
+
+5. (TODO) Flexibility in Units: The application offers the ability to work with different units of measurement, allowing users to use their preferred unit system, whether metric or imperial.
+
+6. (TO FINISH: PDF) Additional Functionality: Hydrosolver can offer additional features such as graphical display of results, ability to save and load projects, and the option to export reports in popular formats such as PDF or Excel.
+
+In summary, Hydrosolver is a hydraulic calculation tool for accurate calculations of flow rate, normal head and pipe losses, helping you make informed decisions in the design and analysis of water conveyance systems.
+
+
 
 Hydrosolver es una aplicación intuitiva y fácil de usar que permite a los usuarios calcular el caudal y el tirante normal en canales abiertos, así como determinar las pérdidas de flujo en tuberías. Esta herramienta es ideal para ingenieros hidráulicos, estudiantes y profesionales que trabajan en el diseño y análisis de sistemas de transporte de agua.
 
