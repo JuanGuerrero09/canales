@@ -65,8 +65,10 @@ def trim_decimals(value):
         decimals = len(result_value) - decimal_index - 1
     else:
         decimals = 0
-    if decimals and int(decimals) > 4:
+    if decimals and int(decimals) > 4 and (result_value[2] and result_value[3] != '0'):
         return f'{value:.2f}'
+    if result_value[2] and result_value[3] == '0':
+        return f'{value:.4f}'
     else:
         return value
 

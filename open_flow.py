@@ -1,5 +1,5 @@
 # Imports
-from sympy import Symbol, nsolve, sqrt, acos, sin, lambdify, re
+from sympy import Symbol, nsolve, sqrt, acos, sin, lambdify, re, solve
 import numpy as np 
 from matplotlib import pyplot as plt 
 import sys
@@ -111,7 +111,10 @@ class Channel:
     def get_critical_parameters(self):
         froude_critical = (self.Q**2 * self.twc) - (self.ac**3 * G)
         x0 = 1 if (hasattr(self, 'D') and self.D > 1.1) else 0.4
-        self.yn = re(nsolve(froude_critical, self.yn, x0))
+        try:
+            self.yn = re(nsolve(froude_critical, self.yn, x0))
+        except:
+            self.yn = solve(froude_critical, self.yn)[0]
         self.yc = self.yn
         self.calc_properties()
         self.Sc = ((self.Q**2 * self.n**2) / (self.ac**2 * self.rc**(4/3)))
