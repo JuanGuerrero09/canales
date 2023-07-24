@@ -219,6 +219,7 @@ class OpenFlowGui(tk.Frame):
             self.more_results_button.grid(row=6, column=0,  padx=20, pady=0, sticky="ew" ,columnspan=2)
             self.master.geometry('670x630')
         except Exception as e:
+            print(e)
             messagebox.showerror("Error", 'An error has ocurred, please select diferent values')
 
 
