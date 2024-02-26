@@ -5,13 +5,17 @@ type ChannelType string
 const (
 	Rectangular ChannelType = "rectangular"
 	Triangular  ChannelType = "triangular"
+
+	G float32 = 9.81
 )
 
 type Channel interface {
 	Area() float64
-	Discharge() float64
-	// HydraulicRadius() float64
-	// Froude() float64
+	// Discharge() float64
+	WettedPerimeter() float64
+	HydraulicRadius(Area, WettedPerimeter float64) float64
+	// TopWidth() float64
+	Velocity(Area float64) float64
 }
 
 type ChannelProperties struct {
@@ -21,6 +25,14 @@ type ChannelProperties struct {
 	N  float64 //manning coef
 }
 
+func (cp ChannelProperties) Velocity(Area float64) float64 {
+	return cp.Q * Area
+}
+
+func (cp ChannelProperties) HydraulicRadius(Area, WettedPerimeter float64) float64 {
+	return Area / WettedPerimeter
+}
+
 type RectangularChannel struct {
 	ChannelProperties
 	height float64
@@ -28,18 +40,18 @@ type RectangularChannel struct {
 }
 
 func (rc RectangularChannel) Area() float64 {
-	return 0.0
+	return rc.height * rc.width
 }
 
-func (rc RectangularChannel) Discharge() float64 {
-	return 0.0
+func (rc RectangularChannel) WettedPerimeter() float64 {
+	return rc.width + (2 * rc.height)
 }
+
+// func (rc RectangularChannel) Discharge() float64 {
+// 	return 0.0
+// }
 
 func (rc RectangularChannel) Froude() float64 {
-	return 0.0
-}
-
-func (rc RectangularChannel) HydraulicRadius() float64 {
 	return 0.0
 }
 
@@ -54,4 +66,5 @@ func CreateChannel(channelType ChannelType, params map[string]float64) Channel {
 		// Handle unsupported channel types
 		return nil
 	}
+	return nil
 }
