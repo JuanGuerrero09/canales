@@ -10,7 +10,8 @@ const (
 )
 
 type Channel interface {
-	Area() float64
+	CalculateDepth(y float64) float64
+	Area(y float64) float64 // Y is normal depth
 	// Discharge() float64
 	WettedPerimeter() float64
 	HydraulicRadius(Area, WettedPerimeter float64) float64
@@ -19,10 +20,16 @@ type Channel interface {
 }
 
 type ChannelProperties struct {
-	So float64 // slope
+	So float64 // Slope
 	Q  float64 // Discharge
-	Yn float64 //Critical Depth
-	N  float64 //manning coef
+	Yn float64 // Normal Depth
+	N  float64 // Manning coef
+}
+
+func (cp ChannelProperties) CalculateDepth(initialDepth float64) float64 {
+	var NormalDepth float64
+
+	NormalDepth = 
 }
 
 func (cp ChannelProperties) Velocity(Area float64) float64 {
@@ -33,33 +40,20 @@ func (cp ChannelProperties) HydraulicRadius(Area, WettedPerimeter float64) float
 	return Area / WettedPerimeter
 }
 
-type RectangularChannel struct {
-	ChannelProperties
-	height float64
-	width  float64
-}
-
-func (rc RectangularChannel) Area() float64 {
-	return rc.height * rc.width
-}
-
-func (rc RectangularChannel) WettedPerimeter() float64 {
-	return rc.width + (2 * rc.height)
-}
-
-// func (rc RectangularChannel) Discharge() float64 {
-// 	return 0.0
-// }
-
-func (rc RectangularChannel) Froude() float64 {
-	return 0.0
+func CalculateProperties(ch Channel) (Area, WettedPerimeter, HydraulicRadius, Velocity float64) {
+	Y := ch.CalculateDepth()
+	Area = ch.Area(Y)
+	WettedPerimeter = ch.WettedPerimeter()
+	HydraulicRadius = ch.HydraulicRadius(Area, WettedPerimeter)
+	Velocity = ch.Velocity(Area)
+	return Area, WettedPerimeter, HydraulicRadius, Velocity
 }
 
 // CreateChannel creates a new hydraulic channel based on the specified type.
 func CreateChannel(channelType ChannelType, params map[string]float64) Channel {
 	switch channelType {
 	case Rectangular:
-		return RectangularChannel{width: params["width"], height: params["height"]}
+		return RectangularChannel{width: params["width"]}
 	// case Triangular:
 	// 	return TriangularChannel{Base: params["base"], Height: params["height"]}
 	default:
