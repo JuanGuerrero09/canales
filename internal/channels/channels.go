@@ -50,10 +50,13 @@ func CalculateProperties(ch Channel) (Area, WettedPerimeter, HydraulicRadius, Ve
 }
 
 // CreateChannel creates a new hydraulic channel based on the specified type.
-func CreateChannel(channelType ChannelType, params map[string]float64) Channel {
+func CreateChannel(channelType ChannelType, channel ChannelProperties, params map[string]float64) Channel {
 	switch channelType {
 	case Rectangular:
-		return RectangularChannel{width: params["width"]}
+		return RectangularChannel{
+			ChannelProperties: channel,
+			width: params["width"],
+		}
 	// case Triangular:
 	// 	return TriangularChannel{Base: params["base"], Height: params["height"]}
 	default:
