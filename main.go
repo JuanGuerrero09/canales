@@ -3,43 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
-	// "github.com/davidkleiven/gononlin/nonlin"
 )
-
-// func ExampleNewtonKrylov() {
-// 	// This example shows how one can use NewtonKrylov to solve the
-// 	// system of equations
-// 	// (x-1)^2*(x - y) = 0
-// 	// (x-2)^3*cos(2*x/y) = 0
-
-// 	problem := nonlin.Problem{
-// 		F: func(out, x []float64) {
-// 			out[0] = math.Pow(Area(x[0])-1.0, 2.0) * (x[0] - x[1])
-// 			out[1] = math.Pow(x[1]-2.0, 3.0) * math.Cos(2.0*x[0]/x[1])
-// 		},
-// 	}
-
-// 	solver := nonlin.NewtonKrylov{
-// 		// Maximum number of Newton iterations
-// 		Maxiter: 1000,
-
-// 		// Stepsize used to appriximate jacobian with finite differences
-// 		StepSize: 1e-2,
-
-// 		// Tolerance for the solution
-// 		Tol: 1e-7,
-// 	}
-
-// 	x0 := []float64{0.0, 3.0}
-// 	res := solver.Solve(problem, x0)
-// 	fmt.Printf("Root: (x, y) = (%.2f, %.2f)\n", res.X[0], res.X[1])
-// 	fmt.Printf("Function value: (%.2f, %.2f)\n", res.F[0], res.F[1])
-
-// 	// Output:
-// 	//
-// 	// Root: (x, y) = (1.00, 2.00)
-// 	// Function value: (-0.00, 0.00)
-// }
 
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
@@ -47,6 +11,7 @@ func roundFloat(val float64, precision uint) float64 {
 }
 
 type Channel interface {
+	Type() string
 	Depth() float64
 	Flow() float64
 	Area(y float64) float64 // Y is normal depth
@@ -129,12 +94,13 @@ func CalculateDepth(rc Channel) float64 {
 		WP := rc.WettedPerimeter(y)     // Assuming this method exists
 		HR := rc.HydraulicRadius(A, WP) // Assuming this method exists
 		fmt.Println("Y in this iteration", y)
-		fmt.Println(rc.CalculateFlow(A, HR) - Qi)
-		return rc.CalculateFlow(A, HR) - Qi
+		dif := rc.CalculateFlow(A, HR) - Qi
+		fmt.Println(dif)
+		return dif
 	}
 
 	// Bisection solver
-	y, err := Bisection(f, 0.001, 100, tolerance)
+	y, err := Bisection(f, 0.001, 1.999, tolerance)
 	if err != nil {
 		fmt.Println("Error:", err)
 		panic(err)
@@ -144,6 +110,10 @@ func CalculateDepth(rc Channel) float64 {
 	yfinal := roundFloat(y, 2)
 
 	return yfinal
+}
+
+func (rc RectangularChannel) Type() string {
+	return "Rectangular"
 }
 
 func (rc RectangularChannel) Area(Y float64) float64 {
@@ -160,6 +130,10 @@ func (rc RectangularChannel) WettedPerimeter(Y float64) float64 {
 type TriangularChannel struct {
 	ChannelProperties
 	slope float64
+}
+
+func (tc TriangularChannel) Type() string {
+	return "Triangular"
 }
 
 func (tc TriangularChannel) Area(Y float64) float64 {
@@ -179,6 +153,10 @@ type TrapezoidalChannel struct {
 	width float64
 }
 
+func (tzc TrapezoidalChannel) Type() string {
+	return "Trapezoidal"
+}
+
 func (tzc TrapezoidalChannel) Area(y float64) float64 {
 	return (tzc.width * y) + (tzc.slope * math.Pow(y, 2))
 }
@@ -187,86 +165,138 @@ func (tzc TrapezoidalChannel) WettedPerimeter(y float64) float64 {
 	return tzc.width + (2 * y * math.Sqrt(1+math.Pow(tzc.slope, 2)))
 }
 
+type CircularChannel struct {
+	ChannelProperties
+	Diameter float64
+}
+
+func (tzc CircularChannel) Type() string {
+	return "Circular"
+}
+
+func (cc CircularChannel) MaxFlow() float64 {
+	return (math.Pi / cc.N) * math.Pow(cc.Diameter/2.0, 5/3.0) * math.Pow(cc.So, 1 / 2.0)
+}
+
+func (cc CircularChannel) ContactAngle(y float64) float64 {
+	return 2 * math.Acos(1-(2*y/cc.Diameter))
+}
+
+func (cc CircularChannel) Area(y float64) float64 {
+	CA := cc.ContactAngle(y)
+	return (math.Pow(cc.Diameter, 2) / 4) * (CA/2 - (math.Sin(CA/2) * math.Cos(CA/2)))
+}
+
+func (cc CircularChannel) WettedPerimeter(y float64) float64 {
+	CA := cc.ContactAngle(y)
+	return ((1 / 2.0) * cc.Diameter * CA)
+}
+
 func main() {
 
-	channel := &RectangularChannel{
-		width: 2,
+	// channel := &RectangularChannel{
+	// 	width: 2,
+	// 	ChannelProperties: ChannelProperties{
+	// 		So: 0.005,
+	// 		N:  0.0013,
+	// 		Q:  166.038,
+	// 		Yn: 0,
+	// 	},
+	// }
+
+	// channel2 := &TriangularChannel{
+	// 	ChannelProperties: ChannelProperties{
+	// 		So: 0.005,
+	// 		N:  0.0013,
+	// 		Q:  403.9506,
+	// 		Yn: 0,
+	// 	},
+	// 	slope: 2.0,
+	// }
+
+	// channel3 := &TrapezoidalChannel{
+	// 	ChannelProperties: ChannelProperties{
+	// 		So: 0.005,
+	// 		N:  0.0013,
+	// 		Q:  400,
+	// 		Yn: 0,
+	// 	},
+	// 	slope: 2.0,
+	// 	width: 2.0,
+	// }
+
+	channel4 := &CircularChannel{
 		ChannelProperties: ChannelProperties{
 			So: 0.005,
 			N:  0.0013,
-			Q:  166.038,
+			Q:  100,
 			Yn: 0,
 		},
+		Diameter: 2.0,
 	}
 
-	channel2 := &TriangularChannel{
-		ChannelProperties: ChannelProperties{
-			So: 0.005,
-			N:  0.0013,
-			Q:  403.9506,
-			Yn: 0,
-		},
-		slope: 2.0,
-	}
+	// fmt.Println("For Rectangular")
+	// channel.Yn = CalculateDepth(channel)
 
-	channel3 := &TrapezoidalChannel{
-		ChannelProperties: ChannelProperties{
-			So: 0.005,
-			N:  0.0013,
-			Q:  400,
-			Yn: 0,
-		},
-		slope: 2.0,
-		width: 2.0,
-	}
+	// A := channel.Area(channel.Yn)
+	// WP := channel.WettedPerimeter(channel.Yn)
+	// HR := channel.HydraulicRadius(A, WP)
+	// Q := channel.CalculateFlow(A, HR)
 
-	fmt.Println("For Rectangular")
-	channel.Yn = CalculateDepth(channel)
+	// fmt.Printf(" Area is %f\n", A)
+	// fmt.Printf(" WP is %f\n", WP)
+	// fmt.Printf(" HR is %f\n", HR)
+	// fmt.Printf(" Flow is %f\n", Q)
 
-	A := channel.Area(channel.Yn)
-	WP := channel.WettedPerimeter(channel.Yn)
-	HR := channel.HydraulicRadius(A, WP)
-	Q := channel.CalculateFlow(A, HR)
+	// fmt.Printf(" Y is %f\n", channel.Yn)
 
-	fmt.Printf(" Area is %f\n", A)
-	fmt.Printf(" WP is %f\n", WP)
-	fmt.Printf(" HR is %f\n", HR)
-	fmt.Printf(" Flow is %f\n", Q)
+	// fmt.Printf("The final channel is %+v", channel)
 
-	fmt.Printf(" Y is %f\n", channel.Yn)
+	// channel2.Yn = CalculateDepth(channel2)
+	// fmt.Printf(" Y is %f\n", channel2.Yn)
+	// A2 := channel2.Area(channel2.Yn)
+	// WP2 := channel2.WettedPerimeter(channel2.Yn)
+	// HR2 := channel2.HydraulicRadius(A2, WP2)
+	// Q2 := channel2.CalculateFlow(A2, HR2)
 
-	fmt.Printf("The final channel is %+v", channel)
+	// fmt.Println("For Rectangular")
 
-	channel2.Yn = CalculateDepth(channel2)
-	fmt.Printf(" Y is %f\n", channel2.Yn)
-	A2 := channel2.Area(channel2.Yn)
-	WP2 := channel2.WettedPerimeter(channel2.Yn)
-	HR2 := channel2.HydraulicRadius(A2, WP2)
-	Q2 := channel2.CalculateFlow(A2, HR2)
+	// fmt.Printf(" Area is %f\n", A2)
+	// fmt.Printf(" WP is %f\n", WP2)
+	// fmt.Printf(" HR is %f\n", HR2)
+	// fmt.Printf(" Flow is %f\n", Q2)
 
-	fmt.Println("For Rectangular")
+	// fmt.Printf("The final channel is %+v", channel2)
 
-	fmt.Printf(" Area is %f\n", A2)
-	fmt.Printf(" WP is %f\n", WP2)
-	fmt.Printf(" HR is %f\n", HR2)
-	fmt.Printf(" Flow is %f\n", Q2)
+	// channel3.Yn = CalculateDepth(channel3)
+	// fmt.Printf(" Y is %f\n", channel3.Yn)
+	// A3 := channel3.Area(channel3.Yn)
+	// WP3 := channel3.WettedPerimeter(channel3.Yn)
+	// HR3 := channel3.HydraulicRadius(A3, WP3)
+	// Q3 := channel3.CalculateFlow(A3, HR3)
 
-	fmt.Printf("The final channel is %+v", channel2)
+	// fmt.Println("For Trapezoidal")
 
-	channel3.Yn = CalculateDepth(channel3)
-	fmt.Printf(" Y is %f\n", channel3.Yn)
-	A3 := channel3.Area(channel3.Yn)
-	WP3 := channel3.WettedPerimeter(channel3.Yn)
-	HR3 := channel3.HydraulicRadius(A3, WP3)
-	Q3 := channel3.CalculateFlow(A3, HR3)
+	// fmt.Printf(" Area is %f\n", A3)
+	// fmt.Printf(" WP is %f\n", WP3)
+	// fmt.Printf(" HR is %f\n", HR3)
+	// fmt.Printf(" Flow is %f\n", Q3)
 
-	fmt.Println("For Rectangular")
+	// fmt.Printf("The final channel is %+v", channel3)
 
-	fmt.Printf(" Area is %f\n", A3)
-	fmt.Printf(" WP is %f\n", WP3)
-	fmt.Printf(" HR is %f\n", HR3)
-	fmt.Printf(" Flow is %f\n", Q3)
+	channel4.Yn = CalculateDepth(channel4)
+	fmt.Printf(" Max flow is %f\n", channel4.MaxFlow())
+	A4 := channel4.Area(channel4.Yn)
+	WP4 := channel4.WettedPerimeter(channel4.Yn)
+	HR4 := channel4.HydraulicRadius(A4, WP4)
+	Q4 := channel4.CalculateFlow(A4, HR4)
 
-	fmt.Printf("The final channel is %+v", channel3)
-	// ExampleNewtonKrylov()
+	fmt.Println("For Trapezoidal")
+
+	fmt.Printf(" Area is %f\n", A4)
+	fmt.Printf(" WP is %f\n", WP4)
+	fmt.Printf(" HR is %f\n", HR4)
+	fmt.Printf(" Flow is %f\n", Q4)
+
+	fmt.Printf("The final channel is %+v", channel4)
 }
