@@ -47,8 +47,10 @@ func roundFloat(val float64, precision uint) float64 {
 }
 
 type Channel interface {
-	CalculateDepth() float64
+	Depth() float64
+	Flow() float64
 	Area(y float64) float64 // Y is normal depth
+	CalculateFlow(Area, HydraulicRadius float64) float64
 	// Discharge() float64
 	WettedPerimeter(y float64) float64
 	HydraulicRadius(Area, WettedPerimeter float64) float64
@@ -63,8 +65,7 @@ type ChannelProperties struct {
 	N  float64 // Manning coef
 }
 
-
-func (cp ChannelProperties) Flow(Area, HydraulicRadius float64) float64 {
+func (cp ChannelProperties) CalculateFlow(Area, HydraulicRadius float64) float64 {
 	Q := Area * math.Pow(HydraulicRadius, 2/3.0) * math.Pow(cp.So, 1/2.0) / cp.N
 	return Q
 }
@@ -77,9 +78,9 @@ func (cp ChannelProperties) HydraulicRadius(Area, WettedPerimeter float64) float
 	return Area / WettedPerimeter
 }
 
-
 type Function func(float64) float64
 
+// TODO: Add a Logger
 func Bisection(f Function, a, b, tol float64) (float64, error) {
 	if f(a)*f(b) > 0 {
 		return 0, fmt.Errorf("root is not bracketed in [%g, %g]", a, b)
@@ -102,12 +103,24 @@ type RectangularChannel struct {
 	width float64
 }
 
-func (rc *RectangularChannel) CalculateDepth() {
-	if rc.Yn != 0 {
-		return
-	}
+func (rc *ChannelProperties) Depth() float64 {
+	return rc.Yn
+}
 
-	Q := rc.Q
+func (rc *ChannelProperties) Flow() float64 {
+	return rc.Q
+}
+
+func CalculateDepth(rc Channel) float64 {
+	y := rc.Depth()
+	if y != 0 {
+		return y
+	}
+	fmt.Println("Y here is ", y)
+
+	Qi := rc.Flow()
+	fmt.Println("Flow here is ", Qi)
+
 	tolerance := 0.001
 
 	// Define the function to be solved
@@ -115,18 +128,22 @@ func (rc *RectangularChannel) CalculateDepth() {
 		A := rc.Area(y)
 		WP := rc.WettedPerimeter(y)     // Assuming this method exists
 		HR := rc.HydraulicRadius(A, WP) // Assuming this method exists
-		return rc.Flow(A, HR) - Q
+		fmt.Println("Y in this iteration", y)
+		fmt.Println(rc.CalculateFlow(A, HR) - Qi)
+		return rc.CalculateFlow(A, HR) - Qi
 	}
 
 	// Bisection solver
-	y, err := Bisection(f, 0, rc.width*2, tolerance)
+	y, err := Bisection(f, 0.001, 100, tolerance)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		panic(err)
 	}
 	fmt.Println(y)
 
-	rc.Yn = roundFloat(y, 2)
+	yfinal := roundFloat(y, 2)
+
+	return yfinal
 }
 
 func (rc RectangularChannel) Area(Y float64) float64 {
@@ -139,8 +156,6 @@ func (rc RectangularChannel) Area(Y float64) float64 {
 func (rc RectangularChannel) WettedPerimeter(Y float64) float64 {
 	return rc.width + (2 * Y)
 }
-
-
 
 type TriangularChannel struct {
 	ChannelProperties
@@ -155,41 +170,26 @@ func (tc TriangularChannel) Area(Y float64) float64 {
 }
 
 func (tc TriangularChannel) WettedPerimeter(y float64) float64 {
-	return 2 * y * math.Sqrt(1 + math.Pow(tc.slope, 2))
+	return 2 * y * math.Sqrt(1+math.Pow(tc.slope, 2))
 }
 
-func (rc *TriangularChannel) CalculateDepth() {
-	if rc.Yn != 0 {
-		return
-	}
-
-	Q := rc.Q
-	tolerance := 0.001
-
-	// Define the function to be solved
-	f := func(y float64) float64 {
-		A := rc.Area(y)
-		WP := rc.WettedPerimeter(y)     // Assuming this method exists
-		HR := rc.HydraulicRadius(A, WP) // Assuming this method exists
-		return rc.Flow(A, HR) - Q
-	}
-
-	// Bisection solver
-	y, err := Bisection(f, 0, 2, tolerance)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	fmt.Println(y)
-
-	rc.Yn = roundFloat(y, 2)
+type TrapezoidalChannel struct {
+	ChannelProperties
+	slope float64
+	width float64
 }
 
+func (tzc TrapezoidalChannel) Area(y float64) float64 {
+	return (tzc.width * y) + (tzc.slope * math.Pow(y, 2))
+}
 
+func (tzc TrapezoidalChannel) WettedPerimeter(y float64) float64 {
+	return tzc.width + (2 * y * math.Sqrt(1+math.Pow(tzc.slope, 2)))
+}
 
 func main() {
 
-	channel := RectangularChannel{
+	channel := &RectangularChannel{
 		width: 2,
 		ChannelProperties: ChannelProperties{
 			So: 0.005,
@@ -199,7 +199,7 @@ func main() {
 		},
 	}
 
-	channel2 := TriangularChannel{
+	channel2 := &TriangularChannel{
 		ChannelProperties: ChannelProperties{
 			So: 0.005,
 			N:  0.0013,
@@ -209,15 +209,24 @@ func main() {
 		slope: 2.0,
 	}
 
-	Y := 2.0
-
-	A := channel.Area(Y)
-	WP := channel.WettedPerimeter(Y)
-	HR := channel.HydraulicRadius(A, WP)
-	Q := channel.Flow(A, HR)
+	channel3 := &TrapezoidalChannel{
+		ChannelProperties: ChannelProperties{
+			So: 0.005,
+			N:  0.0013,
+			Q:  400,
+			Yn: 0,
+		},
+		slope: 2.0,
+		width: 2.0,
+	}
 
 	fmt.Println("For Rectangular")
-	channel.CalculateDepth()
+	channel.Yn = CalculateDepth(channel)
+
+	A := channel.Area(channel.Yn)
+	WP := channel.WettedPerimeter(channel.Yn)
+	HR := channel.HydraulicRadius(A, WP)
+	Q := channel.CalculateFlow(A, HR)
 
 	fmt.Printf(" Area is %f\n", A)
 	fmt.Printf(" WP is %f\n", WP)
@@ -228,10 +237,12 @@ func main() {
 
 	fmt.Printf("The final channel is %+v", channel)
 
-	A2 := channel2.Area(Y)
-	WP2 := channel2.WettedPerimeter(Y)
+	channel2.Yn = CalculateDepth(channel2)
+	fmt.Printf(" Y is %f\n", channel2.Yn)
+	A2 := channel2.Area(channel2.Yn)
+	WP2 := channel2.WettedPerimeter(channel2.Yn)
 	HR2 := channel2.HydraulicRadius(A2, WP2)
-	Q2 := channel2.Flow(A2, HR2)
+	Q2 := channel2.CalculateFlow(A2, HR2)
 
 	fmt.Println("For Rectangular")
 
@@ -240,9 +251,22 @@ func main() {
 	fmt.Printf(" HR is %f\n", HR2)
 	fmt.Printf(" Flow is %f\n", Q2)
 
-	channel2.CalculateDepth()
-	fmt.Printf(" Y is %f\n", channel2.Yn)
-
 	fmt.Printf("The final channel is %+v", channel2)
+
+	channel3.Yn = CalculateDepth(channel3)
+	fmt.Printf(" Y is %f\n", channel3.Yn)
+	A3 := channel3.Area(channel3.Yn)
+	WP3 := channel3.WettedPerimeter(channel3.Yn)
+	HR3 := channel3.HydraulicRadius(A3, WP3)
+	Q3 := channel3.CalculateFlow(A3, HR3)
+
+	fmt.Println("For Rectangular")
+
+	fmt.Printf(" Area is %f\n", A3)
+	fmt.Printf(" WP is %f\n", WP3)
+	fmt.Printf(" HR is %f\n", HR3)
+	fmt.Printf(" Flow is %f\n", Q3)
+
+	fmt.Printf("The final channel is %+v", channel3)
 	// ExampleNewtonKrylov()
 }
