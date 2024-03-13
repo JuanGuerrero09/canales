@@ -45,22 +45,28 @@ func (cp ChannelProperties) HydraulicRadius(Area, WettedPerimeter float64) float
 
 type Function func(float64) float64
 
+type config struct {
+	f         Function
+	a         float64
+	b         float64
+	tolerance float64
+}
 // TODO: Add a Logger
-func Bisection(f Function, a, b, tol float64) (float64, error) {
-	if f(a)*f(b) > 0 {
-		return 0, fmt.Errorf("root is not bracketed in [%g, %g]", a, b)
+func Bisection(cfg config) (float64, error) {
+	if cfg.f(cfg.a)*cfg.f(cfg.b) > 0 {
+		return 0, fmt.Errorf("root is not bracketed in [%g, %g]", cfg.a, cfg.b)
 	}
-	for math.Abs(b-a) > tol {
-		c := (a + b) / 2
-		if f(c) == 0 {
+	for math.Abs(cfg.b-cfg.a) > cfg.tolerance {
+		c := (cfg.a + cfg.b) / 2
+		if cfg.f(c) == 0 {
 			return c, nil
-		} else if f(a)*f(c) < 0 {
-			b = c
+			} else if cfg.f(cfg.a)*cfg.f(c) < 0 {
+				cfg.b = c
 		} else {
-			a = c
+			cfg.a = c
 		}
 	}
-	return (a + b) / 2, nil
+	return (cfg.a + cfg.b) / 2, nil
 }
 
 type RectangularChannel struct {
@@ -77,6 +83,7 @@ func (rc *ChannelProperties) Flow() float64 {
 }
 
 func CalculateDepth(rc Channel) float64 {
+	channelType := rc.Type()
 	y := rc.Depth()
 	if y != 0 {
 		return y
@@ -85,8 +92,6 @@ func CalculateDepth(rc Channel) float64 {
 
 	Qi := rc.Flow()
 	fmt.Println("Flow here is ", Qi)
-
-	tolerance := 0.001
 
 	// Define the function to be solved
 	f := func(y float64) float64 {
@@ -99,13 +104,31 @@ func CalculateDepth(rc Channel) float64 {
 		return dif
 	}
 
+
+	var cfg config
+
 	// Bisection solver
-	y, err := Bisection(f, 0.001, 1.999, tolerance)
+	if channelType == "Circular" {
+		cfg = config{
+			f: f,
+			a: 0.001,
+			b: 2,
+			tolerance: 0.001,
+		}
+		
+	} else {
+		cfg = config{
+			f: f,
+			a: 0.001,
+			b: 100,
+			tolerance: 0.001,
+		}
+	}
+	y, err := Bisection(cfg)
 	if err != nil {
 		fmt.Println("Error:", err)
 		panic(err)
 	}
-	fmt.Println(y)
 
 	yfinal := roundFloat(y, 2)
 
@@ -175,7 +198,7 @@ func (tzc CircularChannel) Type() string {
 }
 
 func (cc CircularChannel) MaxFlow() float64 {
-	return (math.Pi / cc.N) * math.Pow(cc.Diameter/2.0, 5/3.0) * math.Pow(cc.So, 1 / 2.0)
+	return (math.Pi / cc.N) * math.Pow(cc.Diameter/2.0, 5/3.0) * math.Pow(cc.So, 1/2.0)
 }
 
 func (cc CircularChannel) ContactAngle(y float64) float64 {
@@ -194,36 +217,36 @@ func (cc CircularChannel) WettedPerimeter(y float64) float64 {
 
 func main() {
 
-	// channel := &RectangularChannel{
-	// 	width: 2,
-	// 	ChannelProperties: ChannelProperties{
-	// 		So: 0.005,
-	// 		N:  0.0013,
-	// 		Q:  166.038,
-	// 		Yn: 0,
-	// 	},
-	// }
+	channel := &RectangularChannel{
+		width: 2,
+		ChannelProperties: ChannelProperties{
+			So: 0.005,
+			N:  0.0013,
+			Q:  166.038,
+			Yn: 0,
+		},
+	}
 
-	// channel2 := &TriangularChannel{
-	// 	ChannelProperties: ChannelProperties{
-	// 		So: 0.005,
-	// 		N:  0.0013,
-	// 		Q:  403.9506,
-	// 		Yn: 0,
-	// 	},
-	// 	slope: 2.0,
-	// }
+	channel2 := &TriangularChannel{
+		ChannelProperties: ChannelProperties{
+			So: 0.005,
+			N:  0.0013,
+			Q:  403.9506,
+			Yn: 0,
+		},
+		slope: 2.0,
+	}
 
-	// channel3 := &TrapezoidalChannel{
-	// 	ChannelProperties: ChannelProperties{
-	// 		So: 0.005,
-	// 		N:  0.0013,
-	// 		Q:  400,
-	// 		Yn: 0,
-	// 	},
-	// 	slope: 2.0,
-	// 	width: 2.0,
-	// }
+	channel3 := &TrapezoidalChannel{
+		ChannelProperties: ChannelProperties{
+			So: 0.005,
+			N:  0.0013,
+			Q:  400,
+			Yn: 0,
+		},
+		slope: 2.0,
+		width: 2.0,
+	}
 
 	channel4 := &CircularChannel{
 		ChannelProperties: ChannelProperties{
@@ -235,54 +258,54 @@ func main() {
 		Diameter: 2.0,
 	}
 
-	// fmt.Println("For Rectangular")
-	// channel.Yn = CalculateDepth(channel)
+	fmt.Println("For Rectangular")
+	channel.Yn = CalculateDepth(channel)
 
-	// A := channel.Area(channel.Yn)
-	// WP := channel.WettedPerimeter(channel.Yn)
-	// HR := channel.HydraulicRadius(A, WP)
-	// Q := channel.CalculateFlow(A, HR)
+	A := channel.Area(channel.Yn)
+	WP := channel.WettedPerimeter(channel.Yn)
+	HR := channel.HydraulicRadius(A, WP)
+	Q := channel.CalculateFlow(A, HR)
 
-	// fmt.Printf(" Area is %f\n", A)
-	// fmt.Printf(" WP is %f\n", WP)
-	// fmt.Printf(" HR is %f\n", HR)
-	// fmt.Printf(" Flow is %f\n", Q)
+	fmt.Printf(" Area is %f\n", A)
+	fmt.Printf(" WP is %f\n", WP)
+	fmt.Printf(" HR is %f\n", HR)
+	fmt.Printf(" Flow is %f\n", Q)
 
-	// fmt.Printf(" Y is %f\n", channel.Yn)
+	fmt.Printf(" Y is %f\n", channel.Yn)
 
-	// fmt.Printf("The final channel is %+v", channel)
+	fmt.Printf("The final channel is %+v", channel)
 
-	// channel2.Yn = CalculateDepth(channel2)
-	// fmt.Printf(" Y is %f\n", channel2.Yn)
-	// A2 := channel2.Area(channel2.Yn)
-	// WP2 := channel2.WettedPerimeter(channel2.Yn)
-	// HR2 := channel2.HydraulicRadius(A2, WP2)
-	// Q2 := channel2.CalculateFlow(A2, HR2)
+	channel2.Yn = CalculateDepth(channel2)
+	fmt.Printf(" Y is %f\n", channel2.Yn)
+	A2 := channel2.Area(channel2.Yn)
+	WP2 := channel2.WettedPerimeter(channel2.Yn)
+	HR2 := channel2.HydraulicRadius(A2, WP2)
+	Q2 := channel2.CalculateFlow(A2, HR2)
 
-	// fmt.Println("For Rectangular")
+	fmt.Println("For Rectangular")
 
-	// fmt.Printf(" Area is %f\n", A2)
-	// fmt.Printf(" WP is %f\n", WP2)
-	// fmt.Printf(" HR is %f\n", HR2)
-	// fmt.Printf(" Flow is %f\n", Q2)
+	fmt.Printf(" Area is %f\n", A2)
+	fmt.Printf(" WP is %f\n", WP2)
+	fmt.Printf(" HR is %f\n", HR2)
+	fmt.Printf(" Flow is %f\n", Q2)
 
-	// fmt.Printf("The final channel is %+v", channel2)
+	fmt.Printf("The final channel is %+v", channel2)
 
-	// channel3.Yn = CalculateDepth(channel3)
-	// fmt.Printf(" Y is %f\n", channel3.Yn)
-	// A3 := channel3.Area(channel3.Yn)
-	// WP3 := channel3.WettedPerimeter(channel3.Yn)
-	// HR3 := channel3.HydraulicRadius(A3, WP3)
-	// Q3 := channel3.CalculateFlow(A3, HR3)
+	channel3.Yn = CalculateDepth(channel3)
+	fmt.Printf(" Y is %f\n", channel3.Yn)
+	A3 := channel3.Area(channel3.Yn)
+	WP3 := channel3.WettedPerimeter(channel3.Yn)
+	HR3 := channel3.HydraulicRadius(A3, WP3)
+	Q3 := channel3.CalculateFlow(A3, HR3)
 
-	// fmt.Println("For Trapezoidal")
+	fmt.Println("For Trapezoidal")
 
-	// fmt.Printf(" Area is %f\n", A3)
-	// fmt.Printf(" WP is %f\n", WP3)
-	// fmt.Printf(" HR is %f\n", HR3)
-	// fmt.Printf(" Flow is %f\n", Q3)
+	fmt.Printf(" Area is %f\n", A3)
+	fmt.Printf(" WP is %f\n", WP3)
+	fmt.Printf(" HR is %f\n", HR3)
+	fmt.Printf(" Flow is %f\n", Q3)
 
-	// fmt.Printf("The final channel is %+v", channel3)
+	fmt.Printf("The final channel is %+v", channel3)
 
 	channel4.Yn = CalculateDepth(channel4)
 	fmt.Printf(" Max flow is %f\n", channel4.MaxFlow())
